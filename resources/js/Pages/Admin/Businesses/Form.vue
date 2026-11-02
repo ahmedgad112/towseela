@@ -145,7 +145,9 @@ const removeProductRow = (index) => {
                     <UiInput v-model="form.branch_name" label="اسم الفرع" placeholder="الفرع الرئيسي" :error="form.errors.branch_name" />
                     <UiSelect v-model="form.delivery_zone_id" label="منطقة التوصيل" :error="form.errors.delivery_zone_id">
                         <option value="">اختر المنطقة</option>
-                        <option v-for="zone in zones" :key="zone.id" :value="zone.id">{{ zone.name_ar }}</option>
+                        <option v-for="zone in zones" :key="zone.id" :value="zone.id">
+                            {{ zone.name_ar }}{{ zone.governorate ? ` — ${zone.governorate}` : '' }}
+                        </option>
                     </UiSelect>
                 </div>
                 <UiInput v-model="form.branch_address" label="العنوان" placeholder="شارع التحرير، المعادي" :error="form.errors.branch_address" />
@@ -190,14 +192,18 @@ const removeProductRow = (index) => {
                     <p v-for="branch in business.branches" :key="branch.id" class="rounded-2xl bg-canvas px-3 py-3 text-sm">
                         <span class="block font-semibold text-navy">{{ branch.name_ar }}</span>
                         <span class="text-muted">{{ branch.address || 'بدون عنوان' }}</span>
-                        <span v-if="branch.delivery_zone" class="mt-1 block text-xs text-gold">{{ branch.delivery_zone.name_ar }}</span>
+                        <span v-if="branch.delivery_zone" class="mt-1 block text-xs text-gold">
+                            {{ branch.delivery_zone.name_ar }}{{ branch.delivery_zone.governorate ? ` — ${branch.delivery_zone.governorate}` : '' }}
+                        </span>
                     </p>
                 </div>
                 <p v-else class="text-sm text-muted">لا يوجد فرع بعد.</p>
                 <UiInput v-model="branchForm.branch_name" label="اسم الفرع" :error="branchForm.errors.branch_name" />
                 <UiSelect v-model="branchForm.delivery_zone_id" label="المنطقة" :error="branchForm.errors.delivery_zone_id">
                     <option value="">اختر المنطقة</option>
-                    <option v-for="zone in zones" :key="zone.id" :value="zone.id">{{ zone.name_ar }}</option>
+                    <option v-for="zone in zones" :key="zone.id" :value="zone.id">
+                        {{ zone.name_ar }}{{ zone.governorate ? ` — ${zone.governorate}` : '' }}
+                    </option>
                 </UiSelect>
                 <UiInput v-model="branchForm.branch_address" label="العنوان" :error="branchForm.errors.branch_address" />
                 <UiInput v-model="branchForm.branch_phone" label="الهاتف" :error="branchForm.errors.branch_phone" />

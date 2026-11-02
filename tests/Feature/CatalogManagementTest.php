@@ -377,6 +377,40 @@ class CatalogManagementTest extends TestCase
             ->assertSessionHasErrors(['governorate']);
     }
 
+    public function test_admin_cannot_create_a_delivery_zone_with_unknown_governorate(): void
+    {
+        $admin = $this->userWithRole('admin');
+
+        $this->actingAs($admin)
+            ->from(route('admin.zones.index'))
+            ->post(route('admin.zones.store'), [
+                'name_ar' => 'الدقي',
+                'governorate' => 'محافظة غير موجودة',
+                'fee' => 20,
+            ])
+            ->assertRedirect(route('admin.zones.index'))
+            ->assertSessionHasErrors(['governorate']);
+    }
+
+    public function test_admin_zones_index_lists_governorates_for_grouping(): void
+    {
+        $admin = $this->userWithRole('admin');
+        DeliveryZone::factory()->create([
+            'name_ar' => 'المعادي',
+            'governorate' => 'القاهرة',
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('admin.zones.index'))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->component('Admin/Zones/Index')
+                ->has('governorates')
+                ->where('governorates.0', 'القاهرة')
+                ->has('zones', 1)
+                ->where('zones.0.governorate', 'القاهرة'));
+    }
+
     public function test_admin_can_delete_a_delivery_zone_and_its_fee_rules(): void
     {
         $admin = $this->userWithRole('admin');

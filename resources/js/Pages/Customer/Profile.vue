@@ -1,15 +1,19 @@
 <script setup>
-import { Link, useForm } from '@inertiajs/vue3';
+import { Link, useForm, usePage } from '@inertiajs/vue3';
+import { computed } from 'vue';
 import CustomerLayout from '../../Layouts/CustomerLayout.vue';
 import AccountProfileForm from '../../Components/AccountProfileForm.vue';
 import AppIcon from '../../Components/AppIcon.vue';
 import CustomerPageHeader from '../../Components/CustomerPageHeader.vue';
+import { canDo } from '../../workspace';
 
 defineOptions({ layout: CustomerLayout });
 defineProps({
     user: { type: Object, required: true },
 });
 
+const page = usePage();
+const showAddresses = computed(() => canDo(page.props.auth, 'customer.addresses'));
 const logout = useForm({});
 </script>
 
@@ -35,6 +39,7 @@ const logout = useForm({});
     <AccountProfileForm :user="user" profile-url="/account" password-url="/account/password" />
 
     <Link
+        v-if="showAddresses"
         href="/addresses"
         class="customer-surface flex items-center justify-between gap-3 p-4 transition hover:border-gold/50 sm:p-5"
     >

@@ -204,7 +204,11 @@ class BusinessController extends Controller
             'business' => $business,
             'categories' => BusinessCategory::query()->orderBy('sort_order')->orderBy('name_ar')->get(['id', 'name_ar']),
             'managers' => User::role('business_manager')->orderBy('name')->get(['id', 'name']),
-            'zones' => DeliveryZone::query()->active()->orderBy('name_ar')->get(['id', 'name_ar']),
+            'zones' => DeliveryZone::query()
+                ->active()
+                ->orderBy('governorate')
+                ->orderBy('name_ar')
+                ->get(['id', 'name_ar', 'governorate']),
             'hours' => $this->hoursPayload($business),
         ];
     }

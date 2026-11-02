@@ -14,7 +14,6 @@ defineProps({
 
 const page = usePage();
 const coverSrc = '/image/cover.webp';
-const coverMobileSrc = '/image/cover-mobile.webp';
 const brand = computed(() => page.props.platform?.brand || {});
 const brandName = computed(() => brand.value.name_ar || page.props.appName || 'توسيلا');
 const greeting = computed(() => (
@@ -25,30 +24,27 @@ const greeting = computed(() => (
 </script>
 
 <template>
-    <section class="customer-hero -mx-3 -mt-4 aspect-[4/5] max-h-[26rem] sm:-mx-5 sm:-mt-6 sm:aspect-[16/10] sm:max-h-[26rem] lg:-mx-6 lg:-mt-8 lg:aspect-[21/9] lg:max-h-[22rem] xl:max-h-[24rem]">
-        <div class="customer-hero-media">
-            <picture>
-                <source media="(max-width: 639px)" :srcset="coverMobileSrc" type="image/webp">
-                <img
-                    :src="coverSrc"
-                    alt=""
-                    width="1600"
-                    height="900"
-                    fetchpriority="high"
-                    decoding="async"
-                >
-            </picture>
+    <section class="customer-hero customer-hero--home -mx-3 -mt-4 sm:-mx-5 sm:-mt-6 sm:aspect-[16/10] sm:max-h-[26rem] lg:-mx-6 lg:-mt-8 lg:aspect-[21/9] lg:max-h-[22rem] xl:max-h-[24rem]">
+        <div class="customer-hero-media hidden sm:block">
+            <img
+                :src="coverSrc"
+                alt=""
+                width="1600"
+                height="900"
+                fetchpriority="high"
+                decoding="async"
+            >
         </div>
-        <div class="customer-hero-veil" />
-        <div class="customer-hero-copy absolute inset-0 mx-auto flex max-w-6xl flex-col justify-end gap-3 px-4 pb-5 sm:gap-4 sm:px-6 sm:pb-7 lg:px-8 lg:pb-8">
+        <div class="customer-hero-veil hidden sm:block" />
+        <div class="customer-hero-copy relative mx-auto flex max-w-6xl flex-col justify-end gap-3 px-4 py-6 sm:absolute sm:inset-0 sm:gap-4 sm:px-6 sm:py-0 sm:pb-7 lg:px-8 lg:pb-8">
             <div class="max-w-lg space-y-2 sm:space-y-3">
-                <p class="text-[2rem] font-extrabold leading-none tracking-tight text-white drop-shadow-[0_4px_24px_rgba(0,0,0,0.45)] sm:text-4xl lg:text-5xl">
+                <p class="text-[1.85rem] font-extrabold leading-none tracking-tight text-white drop-shadow-[0_4px_24px_rgba(0,0,0,0.45)] sm:text-4xl lg:text-5xl">
                     {{ brandName }}
                 </p>
                 <h2 class="max-w-md text-base font-bold leading-snug text-white/95 sm:text-lg lg:text-xl">
                     اطلب من مطاعمك ومتاجرك المفضلة
                 </h2>
-                <p class="hidden max-w-sm text-sm leading-7 text-white/75 sm:block">
+                <p class="max-w-sm text-sm leading-7 text-white/75">
                     {{ brand.tagline || 'توصيل احترافي بتتبع واضح ودفع عند الاستلام.' }}
                 </p>
             </div>

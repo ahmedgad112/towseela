@@ -9,6 +9,7 @@ use App\Models\DeliveryZone;
 use App\Support\AuditLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -40,7 +41,7 @@ class DeliveryZoneController extends Controller
         $data = $request->validate([
             'name_ar' => ['required', 'string', 'max:255'],
             'name_en' => ['nullable', 'string', 'max:255'],
-            'governorate' => ['required', 'string', 'max:100'],
+            'governorate' => ['required', 'string', 'max:100', Rule::in($this->governorateNames())],
             'is_active' => ['sometimes', 'boolean'],
             'min_order' => ['nullable', 'numeric', 'min:0'],
             'fee' => ['nullable', 'numeric', 'min:0'],

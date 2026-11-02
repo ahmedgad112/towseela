@@ -8,7 +8,6 @@ use App\Models\Business;
 use App\Models\BusinessCategory;
 use App\Models\Coupon;
 use App\Models\CustomerAddress;
-use App\Models\DeliveryFeeRule;
 use App\Models\DeliveryZone;
 use App\Models\DriverProfile;
 use App\Models\PlatformSetting;
@@ -53,29 +52,12 @@ class DemoCatalogSeeder extends Seeder
             'maintenance_message' => 'المنصة تحت الصيانة مؤقتاً. نعود قريباً.',
         ]);
 
-        $zones = collect([
-            ['name_ar' => 'مدينة نصر', 'name_en' => 'Nasr City', 'governorate' => 'القاهرة', 'aliases' => ['nasr city']],
-            ['name_ar' => 'المعادي', 'name_en' => 'Maadi', 'governorate' => 'القاهرة', 'aliases' => ['المعادى', 'Cairo Maadi']],
-            ['name_ar' => 'الزمالك', 'name_en' => 'Zamalek', 'governorate' => 'القاهرة', 'aliases' => ['zamalek']],
-            ['name_ar' => 'التجمع الخامس', 'name_en' => 'New Cairo', 'governorate' => 'القاهرة', 'aliases' => ['التجمع', 'new cairo']],
-        ])->map(function (array $zone) {
-            return DeliveryZone::query()->updateOrCreate(
-                ['name_ar' => $zone['name_ar']],
-                [...$zone, 'is_active' => true],
-            );
-        });
+        $this->call(DeliveryZoneSeeder::class);
 
-        foreach ($zones as $index => $zone) {
-            DeliveryFeeRule::query()->updateOrCreate(
-                ['delivery_zone_id' => $zone->id, 'min_order' => 0],
-                ['fee' => 20 + ($index * 5), 'is_active' => true],
-            );
-
-            DeliveryFeeRule::query()->updateOrCreate(
-                ['delivery_zone_id' => $zone->id, 'min_order' => 200],
-                ['fee' => 10 + ($index * 3), 'is_active' => true],
-            );
-        }
+        $zones = DeliveryZone::query()
+            ->where('governorate', 'القاهرة')
+            ->orderBy('id')
+            ->get();
 
         $categories = [
             ['name_ar' => 'مطاعم', 'slug' => 'restaurants', 'icon' => 'utensils'],
