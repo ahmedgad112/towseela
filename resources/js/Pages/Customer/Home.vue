@@ -14,6 +14,7 @@ defineProps({
 
 const page = usePage();
 const coverSrc = '/image/cover.webp';
+const coverMobileSrc = '/image/cover-mobile.webp';
 const brand = computed(() => page.props.platform?.brand || {});
 const brandName = computed(() => brand.value.name_ar || page.props.appName || 'توسيلا');
 const greeting = computed(() => (
@@ -24,16 +25,19 @@ const greeting = computed(() => (
 </script>
 
 <template>
-    <section class="customer-hero -mx-3 -mt-4 aspect-[4/5] max-h-[28rem] sm:-mx-5 sm:-mt-6 sm:aspect-[16/10] sm:max-h-[26rem] lg:-mx-6 lg:-mt-8 lg:aspect-[21/9] lg:max-h-[22rem] xl:max-h-[24rem]">
+    <section class="customer-hero -mx-3 -mt-4 aspect-[4/5] max-h-[26rem] sm:-mx-5 sm:-mt-6 sm:aspect-[16/10] sm:max-h-[26rem] lg:-mx-6 lg:-mt-8 lg:aspect-[21/9] lg:max-h-[22rem] xl:max-h-[24rem]">
         <div class="customer-hero-media">
-            <img
-                :src="coverSrc"
-                alt=""
-                width="1600"
-                height="900"
-                fetchpriority="high"
-                decoding="async"
-            >
+            <picture>
+                <source media="(max-width: 639px)" :srcset="coverMobileSrc" type="image/webp">
+                <img
+                    :src="coverSrc"
+                    alt=""
+                    width="1600"
+                    height="900"
+                    fetchpriority="high"
+                    decoding="async"
+                >
+            </picture>
         </div>
         <div class="customer-hero-veil" />
         <div class="customer-hero-copy absolute inset-0 mx-auto flex max-w-6xl flex-col justify-end gap-3 px-4 pb-5 sm:gap-4 sm:px-6 sm:pb-7 lg:px-8 lg:pb-8">

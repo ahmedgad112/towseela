@@ -2,6 +2,7 @@
 import { Link, useForm, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import AuthLayout from '../../Layouts/AuthLayout.vue';
+import PasswordRequirements from '../../Components/PasswordRequirements.vue';
 import UiButton from '../../Components/UiButton.vue';
 import UiInput from '../../Components/UiInput.vue';
 
@@ -24,8 +25,9 @@ const form = useForm({
         <UiInput v-model="form.name" label="الاسم" :error="form.errors.name" />
         <UiInput v-model="form.email" type="email" label="البريد الإلكتروني" :error="form.errors.email" />
         <UiInput v-model="form.phone" label="رقم الهاتف" :error="form.errors.phone" />
-        <UiInput v-model="form.password" type="password" label="كلمة المرور" :error="form.errors.password" />
-        <UiInput v-model="form.password_confirmation" type="password" label="تأكيد كلمة المرور" />
+        <UiInput v-model="form.password" type="password" label="كلمة المرور" autocomplete="new-password" :error="form.errors.password" />
+        <PasswordRequirements :password="form.password" />
+        <UiInput v-model="form.password_confirmation" type="password" label="تأكيد كلمة المرور" autocomplete="new-password" />
         <UiButton type="submit" class="w-full" :disabled="form.processing">إنشاء الحساب</UiButton>
 
         <template v-if="googleAuthEnabled">

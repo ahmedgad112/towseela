@@ -32,7 +32,17 @@ class AppServiceProvider extends ServiceProvider
         Model::preventLazyLoading(! $this->app->isProduction());
         Model::preventSilentlyDiscardingAttributes(! $this->app->isProduction());
 
-        Password::defaults(fn () => Password::min(8));
+        Password::defaults(function () {
+            $rule = Password::min(8)
+                ->letters()
+                ->mixedCase()
+                ->numbers()
+                ->symbols();
+
+            return $this->app->isProduction()
+                ? $rule->uncompromised()
+                : $rule;
+        });
 
         Gate::before(function ($user, string $ability): ?bool {
             if (method_exists($user, 'hasRole') && $user->hasRole('super_admin')) {

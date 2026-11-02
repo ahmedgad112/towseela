@@ -67,7 +67,7 @@ class StaffManagementTest extends TestCase
                 'name' => 'موظف جديد',
                 'email' => 'new-staff@towseela.test',
                 'phone' => '01012345678',
-                'password' => 'password',
+                'password' => 'Password1!',
                 'role' => 'dispatcher',
             ])
             ->assertRedirect(route('admin.staff.index'))
@@ -91,7 +91,7 @@ class StaffManagementTest extends TestCase
                 'name' => 'ترقية غير مسموحة',
                 'email' => 'blocked@towseela.test',
                 'phone' => '01012345679',
-                'password' => 'password',
+                'password' => 'Password1!',
                 'role' => 'super_admin',
             ])
             ->assertRedirect(route('admin.staff.index'))
@@ -150,13 +150,13 @@ class StaffManagementTest extends TestCase
                 'name' => $staff->name,
                 'email' => $staff->email,
                 'phone' => $staff->phone,
-                'password' => 'reset-password',
+                'password' => 'ResetPass1!',
                 'role' => 'dispatcher',
                 'is_active' => true,
             ])
             ->assertRedirect(route('admin.staff.index'));
 
-        $this->assertTrue(Hash::check('reset-password', $staff->fresh()->password));
+        $this->assertTrue(Hash::check('ResetPass1!', $staff->fresh()->password));
     }
 
     public function test_admin_cannot_update_a_super_admin(): void

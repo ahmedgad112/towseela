@@ -7,6 +7,13 @@ return [
     'confirmed' => 'تأكيد :attribute غير متطابق.',
     'exists' => 'قيمة :attribute غير صحيحة.',
     'current_password' => 'كلمة المرور الحالية غير صحيحة.',
+    'password' => [
+        'letters' => 'يجب أن تحتوي :attribute على حرف واحد على الأقل.',
+        'mixed' => 'يجب أن تحتوي :attribute على حرف كبير وحرف صغير.',
+        'numbers' => 'يجب أن تحتوي :attribute على رقم واحد على الأقل.',
+        'symbols' => 'يجب أن تحتوي :attribute على رمز خاص واحد على الأقل (!@#$...).',
+        'uncompromised' => 'ظهرت :attribute في تسريب بيانات معروف. اختر كلمة مرور أخرى.',
+    ],
     'min' => [
         'numeric' => 'يجب ألا يقل :attribute عن :min.',
         'string' => 'يجب ألا يقل :attribute عن :min حروف.',

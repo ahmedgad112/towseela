@@ -3,6 +3,7 @@ import { useForm } from '@inertiajs/vue3';
 import UiButton from './UiButton.vue';
 import UiInput from './UiInput.vue';
 import FormSection from './FormSection.vue';
+import PasswordRequirements from './PasswordRequirements.vue';
 
 const props = defineProps({
     user: { type: Object, required: true },
@@ -34,7 +35,7 @@ const passwordForm = useForm({
             </form>
         </FormSection>
 
-        <FormSection title="كلمة المرور" text="أدخل كلمة المرور الحالية ثم كلمة المرور الجديدة.">
+        <FormSection title="كلمة المرور" text="أدخل كلمة المرور الحالية ثم كلمة مرور جديدة وفق المعاير المطلوبة.">
             <form
                 class="space-y-4"
                 @submit.prevent="passwordForm.put(passwordUrl, { onSuccess: () => passwordForm.reset() })"
@@ -53,6 +54,7 @@ const passwordForm = useForm({
                     autocomplete="new-password"
                     :error="passwordForm.errors.password"
                 />
+                <PasswordRequirements :password="passwordForm.password" />
                 <UiInput
                     v-model="passwordForm.password_confirmation"
                     type="password"

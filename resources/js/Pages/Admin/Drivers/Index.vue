@@ -7,6 +7,7 @@ import EmptyState from '../../../Components/EmptyState.vue';
 import Pagination from '../../../Components/Pagination.vue';
 import PageHeader from '../../../Components/PageHeader.vue';
 import FormSection from '../../../Components/FormSection.vue';
+import PasswordRequirements from '../../../Components/PasswordRequirements.vue';
 import ToggleField from '../../../Components/ToggleField.vue';
 import { canDo } from '../../../workspace';
 
@@ -32,7 +33,8 @@ const form = useForm({
                 <UiInput v-model="form.name" label="الاسم" :error="form.errors.name" />
                 <UiInput v-model="form.email" type="email" label="البريد" :error="form.errors.email" />
                 <UiInput v-model="form.phone" label="الهاتف" :error="form.errors.phone" />
-                <UiInput v-model="form.password" type="password" label="كلمة المرور" :error="form.errors.password" />
+                <UiInput v-model="form.password" type="password" label="كلمة المرور" autocomplete="new-password" :error="form.errors.password" />
+                <PasswordRequirements :password="form.password" />
                 <UiInput v-model="form.vehicle_type" label="نوع المركبة" placeholder="موتوسيكل" :error="form.errors.vehicle_type" />
                 <ToggleField v-model="form.is_available" label="متاح للتوزيع الآن" />
                 <UiButton type="submit" :disabled="form.processing">إضافة مندوب</UiButton>

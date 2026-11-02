@@ -19,7 +19,7 @@ const form = useForm({
 </script>
 
 <template>
-    <form class="space-y-4" @submit.prevent="form.post('/login')">
+    <form class="space-y-3.5 sm:space-y-4" @submit.prevent="form.post('/login')">
         <UiInput v-model="form.login" label="البريد أو رقم الهاتف" :error="form.errors.login" autocomplete="username" />
         <UiInput v-model="form.password" type="password" label="كلمة المرور" :error="form.errors.password" autocomplete="current-password" />
         <label class="flex items-center gap-2 text-sm text-muted">
@@ -29,7 +29,7 @@ const form = useForm({
         <UiButton type="submit" class="w-full" :disabled="form.processing">دخول</UiButton>
 
         <template v-if="googleAuthEnabled">
-            <div class="relative py-1 text-center">
+            <div class="relative py-0.5 text-center">
                 <span class="relative z-10 bg-white px-3 text-xs font-medium text-muted">أو</span>
                 <span class="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-line" />
             </div>

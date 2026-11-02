@@ -9,6 +9,7 @@ import UiModal from '../../../Components/UiModal.vue';
 import EmptyState from '../../../Components/EmptyState.vue';
 import Pagination from '../../../Components/Pagination.vue';
 import PageHeader from '../../../Components/PageHeader.vue';
+import PasswordRequirements from '../../../Components/PasswordRequirements.vue';
 import ToggleField from '../../../Components/ToggleField.vue';
 import { roleLabel } from '../../../workspace';
 
@@ -159,7 +160,8 @@ const removeUser = (user) => {
             <UiInput v-model="form.name" label="الاسم" :error="form.errors.name" />
             <UiInput v-model="form.email" type="email" label="البريد" :error="form.errors.email" />
             <UiInput v-model="form.phone" label="الهاتف" :error="form.errors.phone" />
-            <UiInput v-model="form.password" type="password" label="كلمة المرور" :error="form.errors.password" />
+            <UiInput v-model="form.password" type="password" label="كلمة المرور" autocomplete="new-password" :error="form.errors.password" />
+            <PasswordRequirements :password="form.password" />
             <UiSelect v-model="form.role" label="الدور" :error="form.errors.role">
                 <option v-for="item in roles" :key="item.id" :value="item.name">{{ roleLabel(item.name, item.label) }}</option>
             </UiSelect>
@@ -180,7 +182,8 @@ const removeUser = (user) => {
             <UiInput v-model="editForm.name" label="الاسم" :error="editForm.errors.name" />
             <UiInput v-model="editForm.email" type="email" label="البريد" :error="editForm.errors.email" />
             <UiInput v-model="editForm.phone" label="الهاتف" :error="editForm.errors.phone" />
-            <UiInput v-model="editForm.password" type="password" label="كلمة مرور جديدة (اختياري)" :error="editForm.errors.password" />
+            <UiInput v-model="editForm.password" type="password" label="كلمة مرور جديدة (اختياري)" autocomplete="new-password" :error="editForm.errors.password" />
+            <PasswordRequirements v-if="editForm.password" :password="editForm.password" />
             <UiSelect v-if="!roleIsLocked" v-model="editForm.role" label="الدور" :error="editForm.errors.role">
                 <option v-for="item in roles" :key="item.id" :value="item.name">{{ roleLabel(item.name, item.label) }}</option>
             </UiSelect>

@@ -20,12 +20,31 @@ class AuthenticationTest extends TestCase
             'name' => 'عميل جديد',
             'email' => 'new@towseela.test',
             'phone' => '01099999999',
-            'password' => 'password',
-            'password_confirmation' => 'password',
+            'password' => 'Password1!',
+            'password_confirmation' => 'Password1!',
         ])->assertRedirect(route('customer.home'));
 
         $this->assertAuthenticated();
         $this->assertTrue(User::query()->where('email', 'new@towseela.test')->first()?->hasRole('customer'));
+    }
+
+    public function test_registration_rejects_a_weak_password(): void
+    {
+        $this->seedRoles();
+
+        $this->from(route('register'))
+            ->post('/register', [
+                'name' => 'عميل ضعيف',
+                'email' => 'weak@towseela.test',
+                'phone' => '01088888888',
+                'password' => 'password',
+                'password_confirmation' => 'password',
+            ])
+            ->assertRedirect(route('register'))
+            ->assertSessionHasErrors('password');
+
+        $this->assertGuest();
+        $this->assertDatabaseMissing('users', ['email' => 'weak@towseela.test']);
     }
 
     public function test_inactive_user_cannot_login(): void

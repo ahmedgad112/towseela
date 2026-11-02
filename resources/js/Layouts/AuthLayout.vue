@@ -10,10 +10,10 @@ const brandName = computed(() => brand.value.name_ar || page.props.appName || 'Ø
 </script>
 
 <template>
-    <div class="flex min-h-screen items-center justify-center px-4 py-10">
-        <div class="app-page-enter customer-surface w-full max-w-md p-6 sm:p-8" style="box-shadow: var(--shadow-card)">
-            <div class="mb-6">
-                <Link href="/" class="mb-5 inline-flex items-center gap-2.5">
+    <div class="flex min-h-screen items-start justify-center px-4 py-6 sm:items-center sm:py-10">
+        <div class="app-page-enter customer-surface w-full max-w-md p-5 sm:p-8" style="box-shadow: var(--shadow-card)">
+            <div class="mb-5 sm:mb-6">
+                <Link href="/" class="mb-4 inline-flex items-center gap-2.5 sm:mb-5">
                     <AppLogo class="size-11 rounded-[1.15rem]" />
                     <span class="text-xl font-extrabold tracking-tight text-navy">{{ brandName }}</span>
                 </Link>

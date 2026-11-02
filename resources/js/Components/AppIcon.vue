@@ -156,6 +156,11 @@ const sizes = {
             <path d="M7.2 3.8h6.8l4 4v12.4H7.2Z" />
             <path d="M14 3.8v4h4M9.5 12h5M9.5 15.5h3.5" />
         </template>
+        <template v-else-if="name === 'print'">
+            <path d="M7 9V4.8h10V9" />
+            <path d="M7 15.5H5.2A1.7 1.7 0 0 1 3.5 13.8v-3.6A1.7 1.7 0 0 1 5.2 8.5h13.6a1.7 1.7 0 0 1 1.7 1.7v3.6a1.7 1.7 0 0 1-1.7 1.7H17" />
+            <path d="M7 13.5h10v6.2H7z" />
+        </template>
         <template v-else-if="name === 'headset'">
             <path d="M5.2 12a6.8 6.8 0 0 1 13.6 0v4.5a1.8 1.8 0 0 1-1.8 1.8h-1.8v-5.5h3.6" />
             <path d="M5.2 16.5h1.8v-4.5H5.2Zm6.8 4.5h2" />
@@ -178,6 +183,16 @@ const sizes = {
         </template>
         <template v-else-if="name === 'spinner'">
             <path d="M12 3.5a8.5 8.5 0 1 1-8.5 8.5" />
+        </template>
+        <template v-else-if="name === 'eye'">
+            <path d="M2.5 12s3.5-6.5 9.5-6.5S21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z" />
+            <circle cx="12" cy="12" r="2.8" />
+        </template>
+        <template v-else-if="name === 'eye-off'">
+            <path d="m4 4 16 16" />
+            <path d="M9.9 5.3A10.4 10.4 0 0 1 12 5.5c6 0 9.5 6.5 9.5 6.5a16.7 16.7 0 0 1-3.3 3.8" />
+            <path d="M6.7 6.8C4.1 8.6 2.5 12 2.5 12S6 18.5 12 18.5c1.4 0 2.7-.3 3.8-.8" />
+            <path d="M10.2 10.3a2.8 2.8 0 0 0 3.5 3.5" />
         </template>
         <template v-else>
             <circle cx="12" cy="12" r="8.5" />

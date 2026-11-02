@@ -105,13 +105,13 @@ class ProfileTest extends TestCase
             ->from(route('customer.profile'))
             ->put(route('customer.profile.password'), [
                 'current_password' => 'password',
-                'password' => 'new-password',
-                'password_confirmation' => 'new-password',
+                'password' => 'NewPassword1!',
+                'password_confirmation' => 'NewPassword1!',
             ])
             ->assertRedirect(route('customer.profile'))
             ->assertSessionHas('success');
 
-        $this->assertTrue(Hash::check('new-password', $user->fresh()->password));
+        $this->assertTrue(Hash::check('NewPassword1!', $user->fresh()->password));
         $this->assertFalse(Hash::check('password', $user->fresh()->password));
     }
 
@@ -123,8 +123,8 @@ class ProfileTest extends TestCase
             ->from(route('profile.edit'))
             ->put(route('profile.password.update'), [
                 'current_password' => 'wrong-password',
-                'password' => 'new-password',
-                'password_confirmation' => 'new-password',
+                'password' => 'NewPassword1!',
+                'password_confirmation' => 'NewPassword1!',
             ])
             ->assertRedirect(route('profile.edit'))
             ->assertSessionHasErrors('current_password');
@@ -140,11 +140,28 @@ class ProfileTest extends TestCase
             ->from(route('profile.edit'))
             ->put(route('profile.password.update'), [
                 'current_password' => 'password',
-                'password' => 'new-password',
+                'password' => 'NewPassword1!',
                 'password_confirmation' => 'mismatch',
             ])
             ->assertRedirect(route('profile.edit'))
             ->assertSessionHasErrors('password');
+    }
+
+    public function test_password_change_rejects_a_weak_password(): void
+    {
+        $user = $this->userWithRole('customer');
+
+        $this->actingAs($user)
+            ->from(route('customer.profile'))
+            ->put(route('customer.profile.password'), [
+                'current_password' => 'password',
+                'password' => 'weakpass',
+                'password_confirmation' => 'weakpass',
+            ])
+            ->assertRedirect(route('customer.profile'))
+            ->assertSessionHasErrors('password');
+
+        $this->assertTrue(Hash::check('password', $user->fresh()->password));
     }
 
     public function test_staff_cannot_change_their_role_through_the_profile(): void
