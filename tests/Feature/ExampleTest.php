@@ -15,6 +15,8 @@ class ExampleTest extends TestCase
         $response = $this->get('/');
 
         $response->assertOk();
+        $response->assertSee('favicon.png', false);
+        $response->assertSee('apple-touch-icon.png', false);
         $response->assertInertia(fn (Assert $page) => $page->component('Customer/Home'));
     }
 }

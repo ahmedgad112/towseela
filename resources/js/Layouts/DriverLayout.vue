@@ -2,6 +2,7 @@
 import { Link, useForm, usePage } from '@inertiajs/vue3';
 import FlashMessage from '../Components/FlashMessage.vue';
 import AppIcon from '../Components/AppIcon.vue';
+import AppLogo from '../Components/AppLogo.vue';
 import { initial } from '../workspace';
 
 const page = usePage();
@@ -13,7 +14,7 @@ const logout = useForm({});
         <header class="sticky top-0 z-20 bg-navy px-4 py-4 text-white">
             <div class="mx-auto flex max-w-md items-center justify-between">
                 <div class="flex items-center gap-3">
-                    <span class="grid size-10 place-items-center rounded-2xl bg-gold text-sm font-black text-navy">ت</span>
+                    <AppLogo class="size-10 rounded-2xl" />
                     <div>
                         <p class="text-[11px] font-semibold text-gold">بوابة المندوب</p>
                         <h1 class="text-lg font-bold leading-none">توسيلا</h1>

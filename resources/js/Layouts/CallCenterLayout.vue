@@ -3,6 +3,7 @@ import { Link, useForm, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
 import FlashMessage from '../Components/FlashMessage.vue';
 import AppIcon from '../Components/AppIcon.vue';
+import AppLogo from '../Components/AppLogo.vue';
 import { initial, primaryRole, roleLabel, workspaceFor } from '../workspace';
 
 const page = usePage();
@@ -19,7 +20,7 @@ const canAssign = computed(() => page.props.auth.permissions.includes('orders.as
         <header class="sticky top-0 z-20 bg-navy text-white">
             <div class="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-4 sm:px-6">
                 <Link href="/dispatch" class="flex items-center gap-3">
-                    <span class="grid size-11 place-items-center rounded-2xl bg-gold text-sm font-black text-navy">ت</span>
+                    <AppLogo class="size-11 rounded-2xl" />
                     <span>
                         <span class="block text-lg font-bold leading-none">{{ workspace.title }}</span>
                         <span class="text-[11px] text-white/60">توسيلا · {{ workspace.subtitle }}</span>

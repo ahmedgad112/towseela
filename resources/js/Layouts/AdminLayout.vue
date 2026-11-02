@@ -3,6 +3,7 @@ import { Link, useForm, usePage } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 import FlashMessage from '../Components/FlashMessage.vue';
 import AppIcon from '../Components/AppIcon.vue';
+import AppLogo from '../Components/AppLogo.vue';
 import { initial, primaryRole, roleLabel, workspaceFor } from '../workspace';
 
 const page = usePage();
@@ -71,7 +72,7 @@ const currentTitle = computed(() => visibleLinks.value.find((item) => item.match
         >
             <div class="flex items-center justify-between px-5 py-5">
                 <Link href="/admin" class="flex items-center gap-2" @click="open = false">
-                    <span class="grid size-10 place-items-center rounded-2xl bg-gold text-sm font-black text-navy">ت</span>
+                    <AppLogo class="size-10 rounded-2xl" />
                     <span>
                         <span class="block text-lg font-bold leading-none">توسيلا</span>
                         <span class="text-[11px] text-white/60">{{ workspace.title }}</span>

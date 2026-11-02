@@ -3,6 +3,7 @@ import { Link, usePage } from '@inertiajs/vue3';
 import { computed, onMounted, ref } from 'vue';
 import FlashMessage from '../Components/FlashMessage.vue';
 import AppIcon from '../Components/AppIcon.vue';
+import AppLogo from '../Components/AppLogo.vue';
 import GpsPrompt from '../Components/GpsPrompt.vue';
 import {
     hasPromptedGps,
@@ -68,7 +69,7 @@ onMounted(() => {
         <header class="sticky top-0 z-20 border-b border-white/10 bg-navy/95 text-white backdrop-blur">
             <div class="mx-auto flex max-w-5xl items-center justify-between px-4 py-3">
                 <Link href="/" class="flex items-center gap-2">
-                    <span class="grid size-9 place-items-center rounded-xl bg-gold text-sm font-black text-navy">ت</span>
+                    <AppLogo class="size-9 rounded-xl" />
                     <span>
                         <span class="block text-base font-bold leading-none">توسيلا</span>
                         <span class="text-[11px] text-white/60">توصيل احترافي</span>
