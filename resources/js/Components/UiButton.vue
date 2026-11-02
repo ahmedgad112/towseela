@@ -13,9 +13,9 @@ defineProps({
         :href="href"
         :type="href ? undefined : type"
         :disabled="disabled"
-        class="inline-flex min-h-11 items-center justify-center rounded-xl px-4 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50"
+        class="inline-flex min-h-11 items-center justify-center rounded-2xl px-4 py-2 text-sm font-semibold transition disabled:cursor-not-allowed disabled:opacity-50"
         :class="{
-            'bg-gold text-navy hover:bg-gold-hover': variant === 'primary',
+            'bg-gold text-navy shadow-[0_8px_18px_rgba(214,181,104,0.28)] hover:bg-gold-hover': variant === 'primary',
             'bg-navy text-white hover:bg-navy-secondary': variant === 'navy',
             'border border-line bg-white text-ink hover:border-gold': variant === 'outline',
             'bg-red-50 text-red-700 hover:bg-red-100': variant === 'danger',

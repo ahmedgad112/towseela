@@ -9,11 +9,15 @@ use App\Models\CustomerAddress;
 use App\Models\Product;
 use App\Models\User;
 use App\Support\Money;
+use App\Support\PlatformSettings;
 use Illuminate\Validation\ValidationException;
 
 class CartService
 {
-    public function __construct(private PricingService $pricing) {}
+    public function __construct(
+        private PricingService $pricing,
+        private PlatformSettings $platformSettings,
+    ) {}
 
     public function forUser(User $user): Cart
     {
@@ -33,7 +37,7 @@ class CartService
 
         $cart = $this->forUser($user);
 
-        if ($cart->business_id && $cart->business_id !== $product->business_id && ! config('towseela.allow_mixed_business_cart')) {
+        if ($cart->business_id && $cart->business_id !== $product->business_id && ! $this->platformSettings->operations()['allow_mixed_business_cart']) {
             throw ValidationException::withMessages([
                 'product_id' => __('لا يمكن خلط منتجات من متاجر مختلفة في سلة واحدة. أفرغ السلة أولاً.'),
             ]);
@@ -118,11 +122,37 @@ class CartService
     }
 
     /**
+     * Lightweight cart payload for headers and quick-add UI (no pricing).
+     *
+     * @return array{items: list<array<string, mixed>>, count: int}
+     */
+    public function snapshot(Cart $cart): array
+    {
+        $cart->loadMissing('items');
+
+        $items = $cart->items
+            ->map(fn (CartItem $item): array => [
+                'id' => $item->id,
+                'product_id' => $item->product_id,
+                'quantity' => $item->quantity,
+                'options' => array_values($item->options ?? []),
+                'notes' => $item->notes,
+            ])
+            ->values()
+            ->all();
+
+        return [
+            'items' => $items,
+            'count' => (int) $cart->items->sum('quantity'),
+        ];
+    }
+
+    /**
      * @return array<string, mixed>
      */
     public function summary(Cart $cart, ?CustomerAddress $address = null): array
     {
-        $cart->loadMissing(['items.product.options.values', 'business', 'coupon']);
+        $cart->loadMissing(['items.product', 'business', 'coupon']);
 
         $lines = $cart->items->map(function (CartItem $item) {
             $priced = $this->pricing->unitPrice($item->product, $item->options ?? []);

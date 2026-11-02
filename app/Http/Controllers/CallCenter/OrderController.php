@@ -7,22 +7,34 @@ use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\User;
 use App\Services\OrderWorkflowService;
+use App\Support\OrderTransitions;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class OrderController extends Controller
 {
-    public function show(Order $order): Response
+    public function show(Request $request, Order $order): Response
     {
         $this->authorize('view', $order);
 
         $order->load(['customer.addresses', 'business', 'items', 'statusHistories.actor', 'driver', 'payment']);
+        $transitions = OrderTransitions::availableFor($request->user(), $order);
 
         return Inertia::render('CallCenter/OrderShow', [
             'order' => $order,
             'mapNote' => 'لا يوجد تتبع حي للموقع. يظهر العنوان المحفوظ فقط.',
+            'transitions' => $transitions,
+            'can' => [
+                'confirm' => $request->user()->can('confirm', $order)
+                    && $order->status->canTransitionTo(OrderStatus::Confirmed),
+                'cancel' => $request->user()->can('cancel', $order)
+                    && $order->status->canTransitionTo(OrderStatus::Cancelled),
+                'note' => $request->user()->can('note', $order),
+                'updateStatus' => $transitions !== [],
+            ],
         ]);
     }
 
@@ -75,14 +87,22 @@ class OrderController extends Controller
 
     public function transition(Request $request, Order $order, OrderWorkflowService $workflow): RedirectResponse
     {
-        $this->authorize('update', $order);
-
         $data = $request->validate([
-            'status' => ['required', 'string'],
+            'status' => ['required', Rule::enum(OrderStatus::class)],
             'reason' => ['nullable', 'string', 'max:255'],
         ]);
 
-        $workflow->transition($order, OrderStatus::from($data['status']), $request->user(), $data['reason'] ?? null);
+        $status = OrderStatus::from($data['status']);
+
+        abort_unless(OrderTransitions::actorMayTransitionTo($request->user(), $order, $status), 403);
+
+        if ($status === OrderStatus::Cancelled) {
+            $request->validate([
+                'reason' => ['required', 'string', 'max:255'],
+            ]);
+        }
+
+        $workflow->transition($order, $status, $request->user(), $data['reason'] ?? null);
 
         return back()->with('success', __('تم تحديث حالة الطلب.'));
     }

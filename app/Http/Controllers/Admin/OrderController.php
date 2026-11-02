@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\User;
 use App\Services\OrderWorkflowService;
+use App\Support\OrderTransitions;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -43,16 +44,24 @@ class OrderController extends Controller
         ]);
     }
 
-    public function show(Order $order): Response
+    public function show(Request $request, Order $order): Response
     {
         $this->authorize('view', $order);
 
         $order->load(['customer', 'business', 'driver', 'items', 'statusHistories.actor', 'assignments.driver', 'payment']);
+        $transitions = OrderTransitions::availableFor($request->user(), $order);
 
         return Inertia::render('Admin/Orders/Show', [
             'order' => $order,
             'drivers' => User::role('driver')->active()->with('driverProfile')->orderBy('name')->get(['id', 'name', 'phone']),
-            'transitions' => $order->status->allowedTransitions(),
+            'transitions' => $transitions,
+            'can' => [
+                'assignDriver' => $request->user()->can('assignDriver', $order),
+                'updateStatus' => $transitions !== [],
+                'cancel' => $request->user()->can('cancel', $order)
+                    && $order->status->canTransitionTo(OrderStatus::Cancelled),
+                'delete' => $request->user()->can('delete', $order),
+            ],
         ]);
     }
 
@@ -65,17 +74,41 @@ class OrderController extends Controller
 
         $status = OrderStatus::from($data['status']);
 
+        abort_unless(OrderTransitions::actorMayTransitionTo($request->user(), $order, $status), 403);
+
         if ($status === OrderStatus::Cancelled) {
-            $this->authorize('cancel', $order);
-        } elseif ($status === OrderStatus::Confirmed) {
-            $this->authorize('confirm', $order);
-        } else {
-            $this->authorize('update', $order);
+            $request->validate([
+                'reason' => ['required', 'string', 'max:255'],
+            ]);
         }
 
         $workflow->transition($order, $status, $request->user(), $data['reason'] ?? null);
 
         return back()->with('success', __('تم تحديث حالة الطلب.'));
+    }
+
+    public function cancel(Request $request, Order $order, OrderWorkflowService $workflow): RedirectResponse
+    {
+        $this->authorize('cancel', $order);
+
+        $data = $request->validate([
+            'reason' => ['required', 'string', 'max:255'],
+        ]);
+
+        $workflow->transition($order, OrderStatus::Cancelled, $request->user(), $data['reason']);
+
+        return back()->with('success', __('تم إلغاء الطلب.'));
+    }
+
+    public function destroy(Request $request, Order $order, OrderWorkflowService $workflow): RedirectResponse
+    {
+        $this->authorize('delete', $order);
+
+        $workflow->delete($order, $request->user());
+
+        return redirect()
+            ->route('admin.orders.index')
+            ->with('success', __('تم حذف الطلب.'));
     }
 
     public function assign(Request $request, Order $order, OrderWorkflowService $workflow): RedirectResponse

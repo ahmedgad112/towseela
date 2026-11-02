@@ -6,6 +6,7 @@ return [
     'unique' => 'قيمة :attribute مستخدمة من قبل.',
     'confirmed' => 'تأكيد :attribute غير متطابق.',
     'exists' => 'قيمة :attribute غير صحيحة.',
+    'current_password' => 'كلمة المرور الحالية غير صحيحة.',
     'min' => [
         'numeric' => 'يجب ألا يقل :attribute عن :min.',
         'string' => 'يجب ألا يقل :attribute عن :min حروف.',
@@ -21,6 +22,10 @@ return [
         'email' => 'البريد الإلكتروني',
         'phone' => 'رقم الهاتف',
         'password' => 'كلمة المرور',
+        'current_password' => 'كلمة المرور الحالية',
+        'password_confirmation' => 'تأكيد كلمة المرور',
+        'role' => 'الدور',
+        'is_active' => 'حالة الحساب',
         'login' => 'بيانات الدخول',
         'address_id' => 'عنوان التوصيل',
         'product_id' => 'المنتج',

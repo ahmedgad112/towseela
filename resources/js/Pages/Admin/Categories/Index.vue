@@ -44,22 +44,20 @@ const form = useForm({ name_ar: '', icon: 'utensils', is_active: true });
             </form>
         </FormSection>
 
-        <div class="app-card overflow-hidden">
-            <div v-if="categories.length">
-                <p v-for="category in categories" :key="category.id" class="flex items-center justify-between gap-3 border-b border-line px-5 py-3 text-sm last:border-0">
-                    <span class="flex items-center gap-3">
-                        <span class="grid size-10 place-items-center rounded-2xl bg-canvas text-navy">
-                            <AppIcon :name="category.icon || 'tag'" />
-                        </span>
-                        <span>
-                            <span class="block font-semibold text-navy">{{ category.name_ar }}</span>
-                            <span class="text-xs text-muted">{{ category.is_active ? 'ظاهر' : 'مخفي' }}</span>
-                        </span>
+        <div v-if="categories.length" class="app-card-grid xl:grid-cols-2">
+            <article v-for="category in categories" :key="category.id" class="app-item-card">
+                <div class="flex items-start gap-3">
+                    <span class="grid size-12 place-items-center rounded-2xl bg-canvas text-navy">
+                        <AppIcon :name="category.icon || 'tag'" />
                     </span>
-                    <span class="text-muted">{{ category.businesses_count }} متجر</span>
-                </p>
-            </div>
-            <EmptyState v-else title="لا توجد تصنيفات" text="أضف تصنيفاً مثل مطاعم أو صيدليات قبل إنشاء المتاجر." />
+                    <div class="min-w-0 flex-1">
+                        <p class="font-bold text-navy">{{ category.name_ar }}</p>
+                        <p class="mt-1 text-sm text-muted">{{ category.is_active ? 'ظاهر' : 'مخفي' }}</p>
+                    </div>
+                </div>
+                <p class="border-t border-line pt-3 text-sm text-muted">{{ category.businesses_count }} متجر</p>
+            </article>
         </div>
+        <EmptyState v-else title="لا توجد تصنيفات" text="أضف تصنيفاً مثل مطاعم أو صيدليات قبل إنشاء المتاجر." />
     </div>
 </template>

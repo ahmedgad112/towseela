@@ -12,7 +12,16 @@ export default defineConfig({
             refresh: true,
             fonts: [
                 bunny('Cairo', {
-                    weights: [400, 500, 600, 700],
+                    alias: 'sans',
+                    weights: [400, 500, 600, 700, 800],
+                    subsets: ['arabic', 'latin'],
+                    display: 'swap',
+                    optimizedFallbacks: false,
+                    preload: [
+                        { weight: 400 },
+                        { weight: 700 },
+                    ],
+                    fallbacks: ['ui-sans-serif', 'system-ui', 'sans-serif'],
                 }),
             ],
         }),

@@ -3,9 +3,12 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="referrer" content="strict-origin-when-cross-origin">
+        <meta http-equiv="X-Content-Type-Options" content="nosniff">
         <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
         <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}">
         <title inertia>{{ config('app.name', 'Towseela') }}</title>
+        @fonts
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         <x-inertia::head />
     </head>

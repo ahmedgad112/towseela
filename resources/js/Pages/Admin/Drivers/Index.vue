@@ -40,20 +40,22 @@ const form = useForm({
         </FormSection>
 
         <div class="space-y-4">
-            <div class="app-card overflow-hidden">
-                <div v-if="drivers.data?.length">
-                    <p v-for="driver in drivers.data" :key="driver.id" class="flex flex-wrap items-center justify-between gap-2 border-b border-line px-5 py-3 text-sm last:border-0">
-                        <span>
-                            <span class="block font-semibold text-navy">{{ driver.name }}</span>
-                            <span class="text-muted">{{ driver.phone }}</span>
-                        </span>
+            <div v-if="drivers.data?.length" class="app-card-grid xl:grid-cols-2">
+                <article v-for="driver in drivers.data" :key="driver.id" class="app-item-card">
+                    <div class="flex items-start justify-between gap-3">
+                        <div>
+                            <p class="font-bold text-navy">{{ driver.name }}</p>
+                            <p class="mt-1 text-sm text-muted">{{ driver.phone }}</p>
+                            <p class="text-sm text-muted">{{ driver.driver_profile?.vehicle_type || 'بدون مركبة' }}</p>
+                        </div>
                         <span class="rounded-full px-2.5 py-1 text-xs font-semibold" :class="driver.driver_profile?.is_available ? 'bg-emerald-50 text-emerald-700' : 'bg-canvas text-muted'">
-                            {{ driver.driver_profile?.is_available ? 'متاح' : 'غير متاح' }} · {{ driver.active_assignments_count }} نشط
+                            {{ driver.driver_profile?.is_available ? 'متاح' : 'غير متاح' }}
                         </span>
-                    </p>
-                </div>
-                <EmptyState v-else title="لا يوجد مناديب" text="أضف مندوباً ليظهر في غرفة التوزيع." />
+                    </div>
+                    <p class="border-t border-line pt-3 text-sm text-muted">{{ driver.active_assignments_count }} طلب نشط</p>
+                </article>
             </div>
+            <EmptyState v-else title="لا يوجد مناديب" text="أضف مندوباً ليظهر في غرفة التوزيع." />
             <Pagination :links="drivers.links" />
         </div>
     </div>

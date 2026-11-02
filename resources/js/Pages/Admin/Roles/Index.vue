@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue';
+import { computed, reactive, watch } from 'vue';
 import { router, useForm, usePage } from '@inertiajs/vue3';
 import AdminLayout from '../../../Layouts/AdminLayout.vue';
 import UiButton from '../../../Components/UiButton.vue';
@@ -27,15 +27,34 @@ const groups = computed(() => {
 
 const createRole = useForm({ name: '', label: '', permissions: [] });
 const createPermission = useForm({ name: '', label: '', group: 'أخرى' });
-const forms = Object.fromEntries(props.roles.map((role) => [
-    role.id,
-    useForm({ label: role.label, permissions: [...role.permissions] }),
-]));
+const forms = reactive({});
 
-const toggleGroup = (roleId, names) => {
-    const selected = forms[roleId].permissions;
+const syncRoleForms = (roles) => {
+    roles.forEach((role) => {
+        if (!forms[role.id]) {
+            forms[role.id] = useForm({
+                label: role.label,
+                permissions: [...role.permissions],
+            });
+            return;
+        }
+
+        if (!forms[role.id].processing && !forms[role.id].isDirty) {
+            forms[role.id].defaults({
+                label: role.label,
+                permissions: [...role.permissions],
+            });
+            forms[role.id].reset();
+        }
+    });
+};
+
+watch(() => props.roles, syncRoleForms, { immediate: true, deep: true });
+
+const toggleGroup = (target, names) => {
+    const selected = target.permissions;
     const allOn = names.every((name) => selected.includes(name));
-    forms[roleId].permissions = allOn
+    target.permissions = allOn
         ? selected.filter((name) => !names.includes(name))
         : [...new Set([...selected, ...names])];
 };
@@ -61,6 +80,22 @@ const removePermission = (permission) => {
             <h3 class="font-bold text-navy">دور جديد</h3>
             <UiInput v-model="createRole.name" label="المعرف الإنجليزي" placeholder="shift_supervisor" :error="createRole.errors.name" />
             <UiInput v-model="createRole.label" label="الاسم الظاهر" placeholder="مشرف وردية" :error="createRole.errors.label" />
+            <div class="max-h-64 space-y-3 overflow-y-auto rounded-2xl bg-canvas p-3">
+                <div v-for="(items, group) in groups" :key="`create-${group}`">
+                    <div class="mb-2 flex items-center justify-between gap-3">
+                        <h4 class="text-sm font-semibold text-navy">{{ group }}</h4>
+                        <button type="button" class="text-xs font-semibold text-gold" @click="toggleGroup(createRole, items.map((item) => item.name))">
+                            تحديد الكل
+                        </button>
+                    </div>
+                    <div class="grid gap-2">
+                        <label v-for="permission in items" :key="`create-${permission.id}`" class="flex items-center gap-2 text-sm">
+                            <input v-model="createRole.permissions" type="checkbox" :value="permission.name" class="accent-gold">
+                            <span class="text-navy">{{ permission.label }}</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
             <UiButton type="submit" :disabled="createRole.processing">إنشاء الدور</UiButton>
         </form>
         <form v-if="can.createPermission || canDo(auth, 'permissions.create')" class="app-card space-y-3 p-5" @submit.prevent="createPermission.post('/admin/permissions')">
@@ -106,15 +141,17 @@ const removePermission = (permission) => {
         </div>
 
         <p v-if="role.name === 'super_admin'" class="text-sm leading-6 text-muted">مدير المنصة يملك كل الأزرار تلقائياً ولا يمكن تعديل هذا الدور أو حذفه.</p>
-        <form v-else class="space-y-4" @submit.prevent="forms[role.id].patch(`/admin/roles/${role.id}`)">
+        <form v-else-if="forms[role.id]" class="space-y-4" @submit.prevent="forms[role.id].patch(`/admin/roles/${role.id}`)">
             <UiInput v-if="!role.is_system" v-model="forms[role.id].label" label="الاسم الظاهر" />
-            <div v-for="(items, group) in groups" :key="group" class="rounded-2xl bg-canvas p-4">
+            <div v-for="(items, group) in groups" :key="`${role.id}-${group}`" class="rounded-2xl bg-canvas p-4">
                 <div class="mb-3 flex items-center justify-between gap-3">
                     <h4 class="font-semibold text-navy">{{ group }}</h4>
-                    <button type="button" class="text-xs font-semibold text-gold" @click="toggleGroup(role.id, items.map((item) => item.name))">تحديد الكل</button>
+                    <button type="button" class="text-xs font-semibold text-gold" @click="toggleGroup(forms[role.id], items.map((item) => item.name))">
+                        تحديد الكل
+                    </button>
                 </div>
                 <div class="grid gap-2 md:grid-cols-2">
-                    <label v-for="permission in items" :key="permission.id" class="flex items-center gap-2 text-sm">
+                    <label v-for="permission in items" :key="`${role.id}-${permission.id}`" class="flex items-center gap-2 text-sm">
                         <input v-model="forms[role.id].permissions" type="checkbox" :value="permission.name" class="accent-gold">
                         <span>
                             <span class="block text-navy">{{ permission.label }}</span>

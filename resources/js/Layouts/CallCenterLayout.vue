@@ -20,17 +20,17 @@ const canAssign = computed(() => page.props.auth.permissions.includes('orders.as
         <header class="sticky top-0 z-20 bg-navy text-white">
             <div class="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-4 sm:px-6">
                 <Link href="/dispatch" class="flex items-center gap-3">
-                    <AppLogo class="size-11 rounded-2xl" />
+                    <AppLogo class="size-11 rounded-2xl ring-1 ring-white/10" />
                     <span>
-                        <span class="block text-lg font-bold leading-none">{{ workspace.title }}</span>
-                        <span class="text-[11px] text-white/60">توسيلا · {{ workspace.subtitle }}</span>
+                        <span class="block text-lg font-extrabold leading-none tracking-tight">{{ workspace.title }}</span>
+                        <span class="text-[11px] font-medium text-white/60">توسيلا · {{ workspace.subtitle }}</span>
                     </span>
                 </Link>
                 <div class="flex items-center gap-2 text-sm">
-                    <span class="hidden items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 sm:inline-flex">
+                    <Link href="/profile" class="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 hover:bg-white/15">
                         <span class="grid size-6 place-items-center rounded-full bg-gold text-[11px] font-bold text-navy">{{ initial(page.props.auth.user?.name) }}</span>
-                        {{ page.props.auth.user?.name }}
-                    </span>
+                        <span class="max-w-28 truncate">{{ page.props.auth.user?.name }}</span>
+                    </Link>
                     <span class="hidden rounded-full bg-gold/15 px-3 py-1.5 text-gold md:inline">{{ roleLabel(role) }}</span>
                     <Link v-if="canAdmin" href="/admin" class="rounded-full bg-white/10 px-3 py-1.5 text-white/85 hover:bg-white/15">الإدارة</Link>
                     <button class="text-gold" @click="logout.post('/logout')">خروج</button>
@@ -49,7 +49,7 @@ const canAssign = computed(() => page.props.auth.permissions.includes('orders.as
                 </div>
             </div>
         </header>
-        <main class="mx-auto max-w-7xl space-y-5 px-4 py-5 sm:px-6">
+        <main class="app-page-enter dashboard-stack mx-auto max-w-7xl px-3 py-4 sm:px-5 sm:py-5 lg:px-6 lg:py-6">
             <FlashMessage />
             <slot />
         </main>

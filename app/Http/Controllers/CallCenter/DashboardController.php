@@ -6,15 +6,18 @@ use App\Enums\OrderStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\User;
+use App\Support\PlatformSettings;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class DashboardController extends Controller
 {
-    public function __invoke(Request $request): Response
+    public function __invoke(Request $request, PlatformSettings $platformSettings): Response
     {
         abort_unless($request->user()->can('orders.view'), 403);
+
+        $operations = $platformSettings->operations();
 
         $status = $request->string('status')->toString();
         $term = $request->string('q')->toString();
@@ -61,7 +64,7 @@ class DashboardController extends Controller
             'drivers' => $drivers->map(fn (User $driver) => [
                 ...$driver->only(['id', 'name', 'phone']),
                 'available' => (bool) $driver->driverProfile?->is_available
-                    && $driver->active_assignments_count < config('towseela.driver_active_order_limit'),
+                    && $driver->active_assignments_count < $operations['driver_active_order_limit'],
                 'active_assignments_count' => $driver->active_assignments_count,
             ]),
             'filters' => $request->only(['q', 'status', 'zone']),
@@ -69,7 +72,7 @@ class DashboardController extends Controller
                 'incoming' => Order::query()->where('status', OrderStatus::PendingConfirmation)->count(),
                 'overdue' => Order::query()
                     ->whereNotIn('status', array_map(fn (OrderStatus $item) => $item->value, array_filter(OrderStatus::cases(), fn (OrderStatus $item) => $item->isTerminal())))
-                    ->where('created_at', '<=', now()->subMinutes((int) config('towseela.overdue_minutes')))
+                    ->where('created_at', '<=', now()->subMinutes($operations['overdue_minutes']))
                     ->count(),
             ],
         ]);

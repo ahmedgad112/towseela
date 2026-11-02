@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Services\CartService;
+use App\Support\PlatformSettings;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 use Spatie\Permission\Models\Permission;
@@ -32,12 +33,23 @@ class HandleInertiaRequests extends Middleware
     public function share(Request $request): array
     {
         $user = $request->user();
+        $platform = app(PlatformSettings::class);
+        $brand = $platform->brand();
+        $operations = $platform->operations();
+        $map = $platform->map();
+        $features = $platform->features();
 
         return [
             ...parent::share($request),
-            'appName' => config('app.name'),
+            'appName' => $brand['name_ar'] ?: config('app.name'),
             'locale' => app()->getLocale(),
-            'currencyLabel' => config('towseela.currency_label'),
+            'currencyLabel' => $operations['currency_label'],
+            'platform' => [
+                'brand' => $brand,
+                'features' => $features,
+                'google_auth_enabled' => filled(config('services.google.client_id'))
+                    && filled(config('services.google.client_secret')),
+            ],
             'flash' => [
                 'success' => $request->session()->get('success'),
                 'error' => $request->session()->get('error'),
@@ -54,17 +66,14 @@ class HandleInertiaRequests extends Middleware
                     return null;
                 }
 
-                $user->loadMissing('defaultAddress.deliveryZone.feeRules');
-
-                return app(CartService::class)->summary(
+                return app(CartService::class)->snapshot(
                     app(CartService::class)->forUser($user),
-                    $user->defaultAddress,
                 );
             },
-            'customerLocation' => function () use ($user) {
+            'customerLocation' => function () use ($user, $map) {
                 $mapCenter = [
-                    'lat' => (float) config('towseela.map.default_lat'),
-                    'lng' => (float) config('towseela.map.default_lng'),
+                    'lat' => $map['default_lat'],
+                    'lng' => $map['default_lng'],
                 ];
 
                 if (! $user || ! $user->hasRole('customer')) {
@@ -76,14 +85,14 @@ class HandleInertiaRequests extends Middleware
                 }
 
                 $user->loadMissing('defaultAddress');
+                $defaultAddress = $user->defaultAddress;
 
                 return [
-                    'hasAddress' => $user->addresses()->exists(),
-                    'defaultAddress' => $user->defaultAddress?->only(['id', 'line1', 'city', 'lat', 'lng']),
+                    'hasAddress' => $defaultAddress !== null ? true : $user->addresses()->exists(),
+                    'defaultAddress' => $defaultAddress?->only(['id', 'line1', 'city', 'lat', 'lng']),
                     'mapCenter' => $mapCenter,
                 ];
             },
         ];
-
     }
 }

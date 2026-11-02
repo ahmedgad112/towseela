@@ -23,7 +23,7 @@ enum OrderStatus: string
             self::New => 'جديد',
             self::PendingConfirmation => 'بانتظار التأكيد',
             self::Confirmed => 'مؤكد',
-            self::Preparing => 'قيد التحضير',
+            self::Preparing => 'جارٍ التحضير',
             self::AwaitingDriver => 'بانتظار مندوب',
             self::AssignedToDriver => 'تم تعيين مندوب',
             self::PickedUp => 'تم الاستلام',
@@ -55,9 +55,9 @@ enum OrderStatus: string
     public function allowedTransitions(): array
     {
         return match ($this) {
-            self::New => [self::PendingConfirmation],
-            self::PendingConfirmation => [self::Confirmed, self::Cancelled],
-            self::Confirmed => [self::Preparing, self::Cancelled],
+            self::New => [self::PendingConfirmation, self::Cancelled],
+            self::PendingConfirmation => [self::Confirmed, self::Preparing, self::Cancelled],
+            self::Confirmed => [self::Preparing, self::AwaitingDriver, self::Cancelled],
             self::Preparing => [self::AwaitingDriver, self::Cancelled],
             self::AwaitingDriver => [self::AssignedToDriver, self::Cancelled],
             self::AssignedToDriver => [self::PickedUp, self::AwaitingDriver, self::Cancelled],
@@ -71,6 +71,11 @@ enum OrderStatus: string
     public function canTransitionTo(self $status): bool
     {
         return in_array($status, $this->allowedTransitions(), true);
+    }
+
+    public function isCustomerCancellable(): bool
+    {
+        return in_array($this, [self::New, self::PendingConfirmation], true);
     }
 
     public function isTerminal(): bool

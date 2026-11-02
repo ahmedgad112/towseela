@@ -16,6 +16,17 @@ return [
         'default_lng' => (float) env('TOWSEELA_MAP_LNG', 31.2357),
         'default_city' => env('TOWSEELA_MAP_CITY', 'القاهرة'),
     ],
+    'security' => [
+        'headers_enabled' => (bool) env('TOWSEELA_SECURITY_HEADERS', true),
+        'nosniff' => true,
+        'frame_guard' => env('TOWSEELA_FRAME_GUARD', 'SAMEORIGIN'),
+        'referrer_policy' => env('TOWSEELA_REFERRER_POLICY', 'strict-origin-when-cross-origin'),
+        'permissions_policy' => env('TOWSEELA_PERMISSIONS_POLICY', 'camera=(), microphone=(), payment=(), usb=()'),
+        'cross_origin_opener_policy' => env('TOWSEELA_COOP', 'same-origin'),
+        'cross_origin_resource_policy' => env('TOWSEELA_CORP', 'same-origin'),
+        'hsts_enabled' => (bool) env('TOWSEELA_HSTS', true),
+        'hsts_max_age' => (int) env('TOWSEELA_HSTS_MAX_AGE', 31536000),
+    ],
     'governorates' => [
         ['name' => 'القاهرة', 'aliases' => ['cairo', 'cairo governorate', 'محافظة القاهرة']],
         ['name' => 'الجيزة', 'aliases' => ['giza', 'giza governorate', 'gizah', 'محافظة الجيزة']],

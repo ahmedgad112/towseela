@@ -54,18 +54,24 @@ const form = useForm({
         </FormSection>
 
         <div class="space-y-4">
-            <div class="app-card overflow-hidden">
-                <div v-if="coupons.data?.length">
-                    <p v-for="coupon in coupons.data" :key="coupon.id" class="flex items-center justify-between gap-3 border-b border-line px-5 py-3 text-sm last:border-0">
-                        <span>
-                            <span class="block font-semibold text-navy">{{ coupon.code }}</span>
-                            <span class="text-muted">{{ coupon.name_ar }} · {{ coupon.type === 'percent' ? coupon.value + '%' : coupon.value + ' ج.م' }}</span>
+            <div v-if="coupons.data?.length" class="app-card-grid xl:grid-cols-2">
+                <article v-for="coupon in coupons.data" :key="coupon.id" class="app-item-card">
+                    <div class="flex items-start justify-between gap-3">
+                        <div>
+                            <p class="font-bold text-navy">{{ coupon.code }}</p>
+                            <p class="mt-1 text-sm text-muted">{{ coupon.name_ar }}</p>
+                        </div>
+                        <span class="rounded-full px-2.5 py-1 text-xs font-semibold" :class="coupon.is_active ? 'bg-emerald-50 text-emerald-700' : 'bg-canvas text-muted'">
+                            {{ coupon.is_active ? 'مفعّل' : 'متوقف' }}
                         </span>
-                        <span class="text-muted">{{ coupon.used_count }} استخدام</span>
-                    </p>
-                </div>
-                <EmptyState v-else title="لا توجد كوبونات" text="أنشئ كود خصم ليظهر عند الدفع." />
+                    </div>
+                    <div class="flex flex-wrap items-center justify-between gap-2 border-t border-line pt-3 text-sm text-muted">
+                        <span>{{ coupon.type === 'percent' ? `${coupon.value}%` : `${coupon.value} ج.م` }}</span>
+                        <span>{{ coupon.used_count }} استخدام</span>
+                    </div>
+                </article>
             </div>
+            <EmptyState v-else title="لا توجد كوبونات" text="أنشئ كود خصم ليظهر عند الدفع." />
             <Pagination :links="coupons.links" />
         </div>
     </div>

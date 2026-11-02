@@ -377,6 +377,56 @@ class CatalogManagementTest extends TestCase
             ->assertSessionHasErrors(['governorate']);
     }
 
+    public function test_admin_can_delete_a_delivery_zone_and_its_fee_rules(): void
+    {
+        $admin = $this->userWithRole('admin');
+        $zone = DeliveryZone::factory()->create(['name_ar' => 'مدينة نصر']);
+        $rule = $zone->feeRules()->create([
+            'min_order' => 0,
+            'fee' => 30,
+            'is_active' => true,
+        ]);
+
+        $this->actingAs($admin)
+            ->from(route('admin.zones.index'))
+            ->delete(route('admin.zones.destroy', $zone))
+            ->assertRedirect(route('admin.zones.index'));
+
+        $this->assertDatabaseMissing('delivery_zones', ['id' => $zone->id]);
+        $this->assertDatabaseMissing('delivery_fee_rules', ['id' => $rule->id]);
+    }
+
+    public function test_admin_can_delete_a_delivery_fee_rule(): void
+    {
+        $admin = $this->userWithRole('admin');
+        $zone = DeliveryZone::factory()->create();
+        $rule = $zone->feeRules()->create([
+            'min_order' => 100,
+            'fee' => 15,
+            'is_active' => true,
+        ]);
+
+        $this->actingAs($admin)
+            ->from(route('admin.zones.index'))
+            ->delete(route('admin.zones.rules.destroy', $rule))
+            ->assertRedirect(route('admin.zones.index'));
+
+        $this->assertDatabaseMissing('delivery_fee_rules', ['id' => $rule->id]);
+        $this->assertDatabaseHas('delivery_zones', ['id' => $zone->id]);
+    }
+
+    public function test_agent_cannot_delete_a_delivery_zone(): void
+    {
+        $agent = $this->userWithRole('call_center_agent');
+        $zone = DeliveryZone::factory()->create();
+
+        $this->actingAs($agent)
+            ->delete(route('admin.zones.destroy', $zone))
+            ->assertForbidden();
+
+        $this->assertDatabaseHas('delivery_zones', ['id' => $zone->id]);
+    }
+
     public function test_admin_can_create_a_product_using_an_existing_category(): void
     {
         $admin = $this->userWithRole('admin');

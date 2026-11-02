@@ -15,18 +15,31 @@ defineProps({ customer: { type: Object, required: true } });
         <p class="mt-1 text-sm text-muted">{{ customer.email }} · {{ customer.phone }}</p>
     </div>
     <div class="grid gap-4 lg:grid-cols-2">
-        <section class="app-card p-5">
-            <h3 class="mb-3 font-bold text-navy">العناوين</h3>
-            <p v-for="address in customer.addresses" :key="address.id" class="border-b border-line py-2 text-sm last:border-0">{{ address.line1 }}</p>
-            <EmptyState v-if="!customer.addresses?.length" title="لا توجد عناوين" />
+        <section class="space-y-3">
+            <h3 class="font-bold text-navy">العناوين</h3>
+            <div v-if="customer.addresses?.length" class="grid gap-3">
+                <article v-for="address in customer.addresses" :key="address.id" class="app-item-card">
+                    <p class="text-sm leading-6 text-navy">{{ address.line1 }}</p>
+                </article>
+            </div>
+            <EmptyState v-else title="لا توجد عناوين" />
         </section>
-        <section class="app-card p-5">
-            <h3 class="mb-3 font-bold text-navy">الطلبات</h3>
-            <p v-for="order in customer.orders" :key="order.id" class="flex items-center justify-between gap-3 border-b border-line py-2 text-sm last:border-0">
-                <Link :href="`/admin/orders/${order.id}`" class="font-semibold text-navy">{{ order.number }}</Link>
-                <StatusBadge :status="order.status" />
-            </p>
-            <EmptyState v-if="!customer.orders?.length" title="لا توجد طلبات" />
+        <section class="space-y-3">
+            <h3 class="font-bold text-navy">الطلبات</h3>
+            <div v-if="customer.orders?.length" class="grid gap-3">
+                <Link
+                    v-for="order in customer.orders"
+                    :key="order.id"
+                    :href="`/admin/orders/${order.id}`"
+                    class="app-item-card"
+                >
+                    <div class="flex items-center justify-between gap-3">
+                        <span class="font-semibold text-navy">{{ order.number }}</span>
+                        <StatusBadge :status="order.status" />
+                    </div>
+                </Link>
+            </div>
+            <EmptyState v-else title="لا توجد طلبات" />
         </section>
     </div>
 </template>

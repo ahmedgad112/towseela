@@ -132,46 +132,31 @@ const applyFilter = () => {
                 </UiSelect>
                 <UiButton type="submit" variant="outline">تصفية</UiButton>
             </form>
-            <div class="app-card overflow-hidden">
-                <div v-if="products.data?.length" class="overflow-x-auto">
-                    <table class="app-table">
-                        <thead class="bg-canvas text-muted">
-                            <tr>
-                                <th>المنتج</th>
-                                <th>المتجر</th>
-                                <th>التصنيف</th>
-                                <th>السعر</th>
-                                <th>التوفر</th>
-                                <th></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr v-for="product in products.data" :key="product.id" class="border-t border-line hover:bg-canvas/60">
-                                <td class="font-semibold text-navy">{{ product.name_ar }}</td>
-                                <td>{{ product.business?.name_ar }}</td>
-                                <td>{{ product.category?.name_ar || '—' }}</td>
-                                <td>{{ money(product.price, currency) }}</td>
-                                <td>
-                                    <span class="rounded-full px-2.5 py-1 text-xs font-semibold" :class="product.is_available ? 'bg-emerald-50 text-emerald-700' : 'bg-canvas text-muted'">
-                                        {{ product.is_available ? 'متاح' : 'غير متاح' }}
-                                    </span>
-                                </td>
-                                <td>
-                                    <button
-                                        v-if="canDo(page.props.auth, 'products.manage')"
-                                        type="button"
-                                        class="text-sm font-semibold text-gold"
-                                        @click="editProduct(product)"
-                                    >
-                                        تعديل
-                                    </button>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                <EmptyState v-else title="لا توجد منتجات" text="أضف أول منتج من النموذج الجانبي ليظهر في المتجر." />
+            <div v-if="products.data?.length" class="app-card-grid xl:grid-cols-2">
+                <article v-for="product in products.data" :key="product.id" class="app-item-card">
+                    <div class="flex items-start justify-between gap-3">
+                        <div>
+                            <p class="font-bold text-navy">{{ product.name_ar }}</p>
+                            <p class="mt-1 text-sm text-muted">{{ product.business?.name_ar }} · {{ product.category?.name_ar || '—' }}</p>
+                        </div>
+                        <span class="rounded-full px-2.5 py-1 text-xs font-semibold" :class="product.is_available ? 'bg-emerald-50 text-emerald-700' : 'bg-canvas text-muted'">
+                            {{ product.is_available ? 'متاح' : 'غير متاح' }}
+                        </span>
+                    </div>
+                    <div class="flex flex-wrap items-center justify-between gap-3 border-t border-line pt-3 text-sm">
+                        <span class="font-semibold text-navy">{{ money(product.price, currency) }}</span>
+                        <button
+                            v-if="canDo(page.props.auth, 'products.manage')"
+                            type="button"
+                            class="font-semibold text-gold"
+                            @click="editProduct(product)"
+                        >
+                            تعديل
+                        </button>
+                    </div>
+                </article>
             </div>
+            <EmptyState v-else title="لا توجد منتجات" text="أضف أول منتج من النموذج الجانبي ليظهر في المتجر." />
             <Pagination :links="products.links" />
         </div>
     </div>

@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\AuditAction;
 use App\Http\Controllers\Controller;
 use App\Models\DeliveryFeeRule;
 use App\Models\DeliveryZone;
+use App\Support\AuditLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -17,12 +19,21 @@ class DeliveryZoneController extends Controller
         abort_unless($request->user()->can('delivery_zones.manage'), 403);
 
         return Inertia::render('Admin/Zones/Index', [
-            'zones' => DeliveryZone::query()->with('feeRules')->orderBy('governorate')->orderBy('name_ar')->orderBy('id')->get(),
+            'zones' => DeliveryZone::query()
+                ->with('feeRules')
+                ->withCount(['addresses', 'feeRules'])
+                ->orderBy('governorate')
+                ->orderBy('name_ar')
+                ->orderBy('id')
+                ->get(),
             'governorates' => $this->governorateNames(),
+            'can' => [
+                'manage' => $request->user()->can('delivery_zones.manage'),
+            ],
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, AuditLogger $audit): RedirectResponse
     {
         abort_unless($request->user()->can('delivery_zones.manage'), 403);
 
@@ -39,6 +50,7 @@ class DeliveryZoneController extends Controller
             'name_ar' => $data['name_ar'],
             'name_en' => $data['name_en'] ?? null,
             'governorate' => $data['governorate'],
+            'aliases' => [],
             'is_active' => $request->boolean('is_active', true),
         ]);
 
@@ -50,23 +62,50 @@ class DeliveryZoneController extends Controller
             ]);
         }
 
+        $audit->record(AuditAction::DeliveryZoneCreated, $zone, $request->user(), [
+            'name_ar' => $zone->name_ar,
+            'governorate' => $zone->governorate,
+        ]);
+
         return back()->with('success', __('تم حفظ المنطقة.'));
     }
 
-    public function storeRule(Request $request, DeliveryZone $deliveryZone): RedirectResponse
+    public function destroy(Request $request, DeliveryZone $deliveryZone, AuditLogger $audit): RedirectResponse
     {
         abort_unless($request->user()->can('delivery_zones.manage'), 403);
 
-        $deliveryZone->feeRules()->create($request->validate([
+        $audit->record(AuditAction::DeliveryZoneDeleted, $deliveryZone, $request->user(), [
+            'name_ar' => $deliveryZone->name_ar,
+            'governorate' => $deliveryZone->governorate,
+        ]);
+
+        $deliveryZone->delete();
+
+        return back()->with('success', __('تم حذف المنطقة.'));
+    }
+
+    public function storeRule(Request $request, DeliveryZone $deliveryZone, AuditLogger $audit): RedirectResponse
+    {
+        abort_unless($request->user()->can('delivery_zones.manage'), 403);
+
+        $rule = $deliveryZone->feeRules()->create($request->validate([
             'min_order' => ['required', 'numeric', 'min:0'],
             'fee' => ['required', 'numeric', 'min:0'],
             'is_active' => ['sometimes', 'boolean'],
-        ]));
+        ]) + [
+            'is_active' => $request->boolean('is_active', true),
+        ]);
+
+        $audit->record(AuditAction::DeliveryFeeUpdated, $rule, $request->user(), [
+            'delivery_zone_id' => $deliveryZone->id,
+            'min_order' => $rule->min_order,
+            'fee' => $rule->fee,
+        ]);
 
         return back()->with('success', __('تم حفظ قاعدة الرسوم.'));
     }
 
-    public function updateRule(Request $request, DeliveryFeeRule $deliveryFeeRule): RedirectResponse
+    public function updateRule(Request $request, DeliveryFeeRule $deliveryFeeRule, AuditLogger $audit): RedirectResponse
     {
         abort_unless($request->user()->can('delivery_zones.manage'), 403);
 
@@ -76,7 +115,28 @@ class DeliveryZoneController extends Controller
             'is_active' => ['sometimes', 'boolean'],
         ]));
 
+        $audit->record(AuditAction::DeliveryFeeUpdated, $deliveryFeeRule, $request->user(), [
+            'delivery_zone_id' => $deliveryFeeRule->delivery_zone_id,
+            'min_order' => $deliveryFeeRule->min_order,
+            'fee' => $deliveryFeeRule->fee,
+        ]);
+
         return back()->with('success', __('تم تحديث الرسوم.'));
+    }
+
+    public function destroyRule(Request $request, DeliveryFeeRule $deliveryFeeRule, AuditLogger $audit): RedirectResponse
+    {
+        abort_unless($request->user()->can('delivery_zones.manage'), 403);
+
+        $audit->record(AuditAction::DeliveryFeeDeleted, $deliveryFeeRule, $request->user(), [
+            'delivery_zone_id' => $deliveryFeeRule->delivery_zone_id,
+            'min_order' => $deliveryFeeRule->min_order,
+            'fee' => $deliveryFeeRule->fee,
+        ]);
+
+        $deliveryFeeRule->delete();
+
+        return back()->with('success', __('تم حذف قاعدة الرسوم.'));
     }
 
     /**

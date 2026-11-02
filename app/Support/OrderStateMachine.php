@@ -3,17 +3,19 @@
 namespace App\Support;
 
 use App\Enums\OrderStatus;
-use InvalidArgumentException;
+use Illuminate\Validation\ValidationException;
 
 class OrderStateMachine
 {
     public function assertCanTransition(OrderStatus $from, OrderStatus $to): void
     {
         if (! $from->canTransitionTo($to)) {
-            throw new InvalidArgumentException(__('لا يمكن تحويل الطلب من :from إلى :to.', [
-                'from' => $from->label(),
-                'to' => $to->label(),
-            ]));
+            throw ValidationException::withMessages([
+                'status' => __('لا يمكن تحويل الطلب من :from إلى :to.', [
+                    'from' => $from->label(),
+                    'to' => $to->label(),
+                ]),
+            ]);
         }
     }
 

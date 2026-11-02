@@ -26,7 +26,31 @@ class DemoCatalogSeeder extends Seeder
         PlatformSetting::setValue('brand', [
             'name_ar' => 'توسيلا',
             'name_en' => 'Towseela',
+            'tagline' => 'توصيل احترافي',
             'support_phone' => '19900',
+            'support_email' => 'support@towseela.test',
+            'whatsapp' => '01000000000',
+        ]);
+
+        PlatformSetting::setValue('operations', [
+            'currency' => 'EGP',
+            'currency_label' => 'ج.م',
+            'allow_mixed_business_cart' => false,
+            'require_proof_of_delivery_note' => false,
+            'driver_active_order_limit' => 3,
+            'overdue_minutes' => 90,
+        ]);
+
+        PlatformSetting::setValue('map', [
+            'default_lat' => 30.0444,
+            'default_lng' => 31.2357,
+            'default_city' => 'القاهرة',
+        ]);
+
+        PlatformSetting::setValue('features', [
+            'customer_registration_enabled' => true,
+            'maintenance_mode' => false,
+            'maintenance_message' => 'المنصة تحت الصيانة مؤقتاً. نعود قريباً.',
         ]);
 
         $zones = collect([

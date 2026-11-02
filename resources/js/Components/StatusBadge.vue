@@ -7,7 +7,7 @@ const labels = {
     new: 'جديد',
     pending_confirmation: 'بانتظار التأكيد',
     confirmed: 'مؤكد',
-    preparing: 'قيد التحضير',
+    preparing: 'جارٍ التحضير',
     awaiting_driver: 'بانتظار مندوب',
     assigned_to_driver: 'تم تعيين مندوب',
     picked_up: 'تم الاستلام',

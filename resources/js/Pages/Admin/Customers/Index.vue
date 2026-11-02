@@ -14,28 +14,20 @@ defineProps({
 
 <template>
     <PageHeader title="العملاء" text="ملفات العملاء وعدد طلباتهم." />
-    <div class="app-card overflow-hidden">
-        <div v-if="customers.data?.length" class="overflow-x-auto">
-            <table class="app-table">
-                <thead class="bg-canvas text-muted">
-                    <tr>
-                        <th>الاسم</th>
-                        <th>الهاتف</th>
-                        <th>الطلبات</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr v-for="customer in customers.data" :key="customer.id" class="border-t border-line hover:bg-canvas/60">
-                        <td>
-                            <Link :href="`/admin/customers/${customer.id}`" class="font-semibold text-navy">{{ customer.name }}</Link>
-                        </td>
-                        <td>{{ customer.phone }}</td>
-                        <td>{{ customer.orders_count }} طلب</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-        <EmptyState v-else title="لا يوجد عملاء" text="سيظهر العملاء هنا بعد أول تسجيل." />
+    <div v-if="customers.data?.length" class="app-card-grid">
+        <Link
+            v-for="customer in customers.data"
+            :key="customer.id"
+            :href="`/admin/customers/${customer.id}`"
+            class="app-item-card"
+        >
+            <div>
+                <p class="font-bold text-navy">{{ customer.name }}</p>
+                <p class="mt-1 text-sm text-muted">{{ customer.phone }}</p>
+            </div>
+            <p class="border-t border-line pt-3 text-sm text-muted">{{ customer.orders_count }} طلب</p>
+        </Link>
     </div>
+    <EmptyState v-else title="لا يوجد عملاء" text="سيظهر العملاء هنا بعد أول تسجيل." />
     <Pagination :links="customers.links" />
 </template>

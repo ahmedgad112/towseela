@@ -26,9 +26,19 @@ class PlatformSetting extends Model
 
     public static function getValue(string $key, mixed $default = null): mixed
     {
+        /** @var array<string, mixed> $settings */
         $settings = Cache::remember('platform_settings', 60, function () {
-            return static::query()->pluck('value', 'key');
+            return static::query()
+                ->get(['key', 'value'])
+                ->mapWithKeys(fn (self $setting): array => [$setting->key => $setting->value])
+                ->all();
         });
+
+        if (! is_array($settings)) {
+            Cache::forget('platform_settings');
+
+            return $default;
+        }
 
         return $settings[$key] ?? $default;
     }

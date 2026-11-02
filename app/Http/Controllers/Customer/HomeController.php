@@ -16,11 +16,12 @@ class HomeController extends Controller
             'categories' => BusinessCategory::query()->active()->orderBy('sort_order')->orderBy('id')->get(),
             'businesses' => Business::query()
                 ->active()
-                ->with('category')
+                ->with('category:id,name_ar,slug,icon')
                 ->withCount(['products as available_products_count' => fn ($query) => $query->available()])
                 ->orderBy('name_ar')
                 ->orderBy('id')
-                ->get(),
+                ->limit(48)
+                ->get(['id', 'business_category_id', 'name_ar', 'slug', 'description', 'cover_path', 'min_order_amount', 'delivery_time_min', 'delivery_time_max']),
         ]);
     }
 }

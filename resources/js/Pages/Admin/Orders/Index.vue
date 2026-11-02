@@ -6,6 +6,7 @@ import StatusBadge from '../../../Components/StatusBadge.vue';
 import EmptyState from '../../../Components/EmptyState.vue';
 import Pagination from '../../../Components/Pagination.vue';
 import PageHeader from '../../../Components/PageHeader.vue';
+import { useOrderLive } from '../../../orderLive';
 import { money } from '../../../workspace';
 
 defineOptions({ layout: AdminLayout });
@@ -18,11 +19,23 @@ const q = ref(props.filters.q || '');
 const status = ref(props.filters.status || '');
 const page = usePage();
 const currency = computed(() => page.props.currencyLabel || 'ج.م');
+const { live } = useOrderLive({
+    channel: 'ops',
+    only: ['orders'],
+    soundOn: ['created'],
+});
 const search = () => router.get('/admin/orders', { q: q.value, status: status.value }, { preserveState: true });
 </script>
 
 <template>
-    <PageHeader title="الطلبات" text="ابحث برقم الطلب أو هاتف العميل، أو صفّ حسب الحالة." />
+    <PageHeader title="الطلبات" text="ابحث برقم الطلب أو هاتف العميل، أو صفّ حسب الحالة.">
+        <span
+            class="rounded-full px-3 py-1 text-[11px] font-bold"
+            :class="live ? 'bg-gold/20 text-navy' : 'bg-canvas text-muted'"
+        >
+            {{ live ? 'مباشر' : '...' }}
+        </span>
+    </PageHeader>
     <form class="app-card flex flex-col gap-2 p-3 sm:flex-row" @submit.prevent="search">
         <input v-model="q" class="app-select flex-1" placeholder="رقم الطلب أو الهاتف">
         <select v-model="status" class="app-select sm:w-52">
@@ -31,30 +44,26 @@ const search = () => router.get('/admin/orders', { q: q.value, status: status.va
         </select>
         <button class="min-h-12 rounded-2xl bg-navy px-4 text-sm font-semibold text-white">بحث</button>
     </form>
-    <div class="app-card overflow-hidden">
-        <div v-if="orders.data?.length" class="overflow-x-auto">
-            <table class="app-table">
-                <thead class="bg-canvas text-muted">
-                    <tr>
-                        <th>الطلب</th>
-                        <th>العميل</th>
-                        <th>المتجر</th>
-                        <th>الحالة</th>
-                        <th>الإجمالي</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr v-for="order in orders.data" :key="order.id" class="border-t border-line hover:bg-canvas/60">
-                        <td><Link :href="`/admin/orders/${order.id}`" class="font-semibold text-navy">{{ order.number }}</Link></td>
-                        <td>{{ order.customer?.name }}</td>
-                        <td>{{ order.business?.name_ar }}</td>
-                        <td><StatusBadge :status="order.status" /></td>
-                        <td>{{ money(order.grand_total, currency) }}</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-        <EmptyState v-else title="لا توجد طلبات" text="جرّب تغيير البحث أو فلتر الحالة." />
+    <div v-if="orders.data?.length" class="app-card-grid">
+        <Link
+            v-for="order in orders.data"
+            :key="order.id"
+            :href="`/admin/orders/${order.id}`"
+            class="app-item-card"
+        >
+            <div class="flex items-start justify-between gap-3">
+                <div>
+                    <p class="font-bold text-navy">{{ order.number }}</p>
+                    <p class="mt-1 text-sm text-muted">{{ order.customer?.name }}</p>
+                </div>
+                <StatusBadge :status="order.status" />
+            </div>
+            <div class="flex flex-wrap items-end justify-between gap-2 border-t border-line pt-3 text-sm">
+                <span class="text-muted">{{ order.business?.name_ar }}</span>
+                <span class="font-semibold text-navy">{{ money(order.grand_total, currency) }}</span>
+            </div>
+        </Link>
     </div>
+    <EmptyState v-else title="لا توجد طلبات" text="جرّب تغيير البحث أو فلتر الحالة." />
     <Pagination :links="orders.links" />
 </template>

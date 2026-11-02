@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\OrderStatus;
+use App\Support\PlatformSettings;
 use Database\Factories\DriverProfileFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -44,6 +45,6 @@ class DriverProfile extends Model
             ))
             ->count();
 
-        return $activeCount < config('towseela.driver_active_order_limit');
+        return $activeCount < app(PlatformSettings::class)->operations()['driver_active_order_limit'];
     }
 }

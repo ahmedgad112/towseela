@@ -7,6 +7,7 @@ import UiInput from '../../Components/UiInput.vue';
 import UiTextarea from '../../Components/UiTextarea.vue';
 import AppIcon from '../../Components/AppIcon.vue';
 import LocationPicker from '../../Components/LocationPicker.vue';
+import CustomerPageHeader from '../../Components/CustomerPageHeader.vue';
 import { readStoredLocation } from '../../customerLocation';
 
 defineOptions({ layout: CustomerLayout });
@@ -82,19 +83,31 @@ onMounted(() => {
 </script>
 
 <template>
-    <div>
-        <h2 class="text-2xl font-bold text-navy">عناويني</h2>
-        <p class="mt-1 text-sm text-muted">اكتب العنوان يدوياً أو حدده من الخريطة، ومنطقة التوصيل تُختار حسب المكان والمحافظة.</p>
+    <CustomerPageHeader
+        eyebrow="التوصيل"
+        title="عناويني"
+        text="اكتب العنوان يدوياً أو حدده من الخريطة، ومنطقة التوصيل تُختار حسب المكان."
+    />
+
+    <div v-if="addresses.length" class="flex flex-col gap-3">
+        <article v-for="address in addresses" :key="address.id" class="customer-surface flex items-start gap-3.5 p-4 sm:p-5">
+            <span class="grid size-11 shrink-0 place-items-center rounded-2xl bg-navy text-gold">
+                <AppIcon name="pin" size="sm" />
+            </span>
+            <div class="min-w-0 space-y-1">
+                <p class="font-extrabold tracking-tight text-navy">{{ address.line1 }}</p>
+                <p class="text-sm leading-6 text-muted">
+                    {{ address.delivery_zone?.name_ar }} · محافظة {{ address.delivery_zone?.governorate || address.city }}
+                </p>
+                <p v-if="address.lat && address.lng" class="text-xs font-medium text-gold">
+                    تم تحديد الموقع على الخريطة
+                </p>
+            </div>
+        </article>
     </div>
-    <article v-for="address in addresses" :key="address.id" class="app-card flex items-start gap-3 p-4">
-        <span class="grid size-10 place-items-center rounded-2xl bg-navy text-gold"><AppIcon name="pin" /></span>
-        <div>
-            <p class="font-bold text-navy">{{ address.line1 }}</p>
-            <p class="text-sm text-muted">{{ address.delivery_zone?.name_ar }} · محافظة {{ address.delivery_zone?.governorate || address.city }}</p>
-            <p v-if="address.lat && address.lng" class="mt-1 text-xs text-muted">تم تحديد الموقع على الخريطة</p>
-        </div>
-    </article>
-    <form class="app-card mb-8 space-y-3 p-5" @submit.prevent="form.post('/addresses')">
+
+    <form class="customer-surface mb-4 space-y-3.5 p-4 sm:p-5" @submit.prevent="form.post('/addresses')">
+        <p class="text-sm font-extrabold tracking-tight text-navy">إضافة عنوان جديد</p>
         <select v-model="form.label" class="app-select w-full">
             <option v-for="label in labels" :key="label.value" :value="label.value">{{ label.label }}</option>
         </select>
@@ -113,11 +126,20 @@ onMounted(() => {
                 <option value="">اختر المنطقة داخل المحافظة</option>
                 <option v-for="zone in visibleZones" :key="zone.id" :value="String(zone.id)">{{ zone.name_ar }}</option>
             </select>
-            <p v-if="selectedZone" class="text-xs text-muted">تم تحديد {{ selectedZone.name_ar }} في محافظة {{ selectedZone.governorate || form.city }}.</p>
-            <p v-else-if="form.city && !visibleZones.length" class="text-xs text-red-600">لا توجد مناطق توصيل في محافظة {{ form.city }}.</p>
+            <p v-if="selectedZone" class="text-xs leading-5 text-muted">
+                تم تحديد {{ selectedZone.name_ar }} في محافظة {{ selectedZone.governorate || form.city }}.
+            </p>
+            <p v-else-if="form.city && !visibleZones.length" class="text-xs text-red-600">
+                لا توجد مناطق توصيل في محافظة {{ form.city }}.
+            </p>
             <p v-if="form.errors.delivery_zone_id" class="text-xs text-red-600">{{ form.errors.delivery_zone_id }}</p>
         </label>
-        <UiTextarea v-model="form.notes" label="ملاحظات الوصول" placeholder="علامة مميزة، رقم العمارة، الدور..." :error="form.errors.notes" />
+        <UiTextarea
+            v-model="form.notes"
+            label="ملاحظات الوصول"
+            placeholder="علامة مميزة، رقم العمارة، الدور..."
+            :error="form.errors.notes"
+        />
         <UiButton type="submit" :disabled="form.processing">حفظ العنوان</UiButton>
     </form>
 </template>

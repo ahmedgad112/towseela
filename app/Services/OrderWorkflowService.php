@@ -10,7 +10,9 @@ use App\Models\DriverProfile;
 use App\Models\Order;
 use App\Models\User;
 use App\Support\AuditLogger;
+use App\Support\OrderRealtime;
 use App\Support\OrderStateMachine;
+use App\Support\PlatformSettings;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -19,11 +21,13 @@ class OrderWorkflowService
     public function __construct(
         private OrderStateMachine $stateMachine,
         private AuditLogger $audit,
+        private PlatformSettings $platformSettings,
+        private OrderRealtime $realtime,
     ) {}
 
     public function transition(Order $order, OrderStatus $to, User $actor, ?string $reason = null): Order
     {
-        return DB::transaction(function () use ($order, $to, $actor, $reason) {
+        $updated = DB::transaction(function () use ($order, $to, $actor, $reason) {
             $locked = Order::query()->whereKey($order->id)->lockForUpdate()->firstOrFail();
             $from = $locked->status;
 
@@ -55,6 +59,10 @@ class OrderWorkflowService
 
             return $locked->refresh();
         });
+
+        $this->realtime->orderUpdated($updated);
+
+        return $updated;
     }
 
     public function assignDriver(Order $order, User $driver, User $actor): Order
@@ -73,7 +81,7 @@ class OrderWorkflowService
             ]);
         }
 
-        return DB::transaction(function () use ($order, $driver, $actor) {
+        $updated = DB::transaction(function () use ($order, $driver, $actor) {
             $locked = Order::query()->whereKey($order->id)->lockForUpdate()->firstOrFail();
 
             if ($locked->activeAssignment()->exists() && $locked->driver_id === $driver->id) {
@@ -102,7 +110,7 @@ class OrderWorkflowService
                 ->lockForUpdate()
                 ->count();
 
-            if ($conflict >= config('towseela.driver_active_order_limit')) {
+            if ($conflict >= $this->platformSettings->operations()['driver_active_order_limit']) {
                 throw ValidationException::withMessages([
                     'driver_id' => __('المندوب وصل إلى الحد الأقصى للطلبات النشطة.'),
                 ]);
@@ -139,6 +147,27 @@ class OrderWorkflowService
 
             return $locked->refresh();
         });
+
+        $this->realtime->orderAssigned($updated, $driver->id);
+
+        return $updated;
+    }
+
+    public function delete(Order $order, User $actor): void
+    {
+        DB::transaction(function () use ($order, $actor): void {
+            $locked = Order::query()->whereKey($order->id)->lockForUpdate()->firstOrFail();
+
+            $this->releaseAssignment($locked);
+
+            $this->audit->record(AuditAction::OrderDeleted, $locked, $actor, [
+                'number' => $locked->number,
+                'status' => $locked->status->value,
+                'grand_total' => $locked->grand_total,
+            ]);
+
+            $locked->delete();
+        });
     }
 
     public function markDelivered(Order $order, User $driver, ?string $proof = null): Order
@@ -149,7 +178,7 @@ class OrderWorkflowService
             ]);
         }
 
-        if (config('towseela.require_proof_of_delivery_note') && blank($proof)) {
+        if ($this->platformSettings->operations()['require_proof_of_delivery_note'] && blank($proof)) {
             throw ValidationException::withMessages([
                 'proof_of_delivery' => __('يرجى إدخال ملاحظة إثبات التسليم.'),
             ]);

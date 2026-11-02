@@ -1,34 +1,27 @@
 <script setup>
-import { Link } from '@inertiajs/vue3';
+import { Link, usePage } from '@inertiajs/vue3';
+import { computed } from 'vue';
 import AppLogo from '../Components/AppLogo.vue';
 import FlashMessage from '../Components/FlashMessage.vue';
+
+const page = usePage();
+const brand = computed(() => page.props.platform?.brand || {});
+const brandName = computed(() => brand.value.name_ar || page.props.appName || 'توسيلا');
 </script>
 
 <template>
-    <div class="min-h-screen bg-navy lg:grid lg:grid-cols-2">
-        <section class="relative hidden overflow-hidden px-10 py-12 text-white lg:flex lg:flex-col lg:justify-center">
-            <div class="pointer-events-none absolute inset-0 opacity-25" style="background-image: radial-gradient(circle at 18% 20%, #d6b568 0, transparent 26%), radial-gradient(circle at 86% 78%, #ffffff 0, transparent 20%)" />
-            <div class="relative mx-auto w-full max-w-lg">
-                <Link href="/" class="inline-flex items-center">
-                    <AppLogo class="h-28 w-28 rounded-3xl" />
+    <div class="flex min-h-screen items-center justify-center px-4 py-10">
+        <div class="app-page-enter customer-surface w-full max-w-md p-6 sm:p-8" style="box-shadow: var(--shadow-card)">
+            <div class="mb-6">
+                <Link href="/" class="mb-5 inline-flex items-center gap-2.5">
+                    <AppLogo class="size-11 rounded-[1.15rem]" />
+                    <span class="text-xl font-extrabold tracking-tight text-navy">{{ brandName }}</span>
                 </Link>
-                <h1 class="mt-10 text-4xl font-bold leading-snug">كل اللي محتاجه في توصيلة</h1>
-                <p class="mt-4 text-sm leading-7 text-white/70">اطلب من المطاعم والمتاجر، وتابع حالة الطلب بدقة، مع دفع عند الاستلام حتى يتم ربط بوابة الدفع.</p>
+                <p class="text-[11px] font-bold tracking-[0.14em] text-gold">{{ brand.name_en || 'Towseela' }}</p>
+                <h2 class="mt-1.5 text-2xl font-extrabold tracking-tight text-navy">مرحباً بك</h2>
             </div>
-        </section>
-        <section class="flex min-h-screen items-center justify-center bg-canvas px-4 py-10">
-            <div class="w-full max-w-md rounded-3xl bg-white p-6 shadow-[var(--shadow-card)] sm:p-8">
-                <div class="mb-6">
-                    <Link href="/" class="mb-4 inline-flex items-center gap-2 lg:hidden">
-                        <AppLogo class="size-10 rounded-2xl" />
-                        <span class="text-xl font-bold text-navy">توسيلا</span>
-                    </Link>
-                    <p class="text-xs font-semibold tracking-wide text-gold">Towseela</p>
-                    <h2 class="mt-1 text-2xl font-bold text-navy">مرحباً بك</h2>
-                </div>
-                <FlashMessage />
-                <slot />
-            </div>
-        </section>
+            <FlashMessage />
+            <slot />
+        </div>
     </div>
 </template>

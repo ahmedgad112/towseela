@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\OrderStatus;
 use App\Enums\PaymentMethod;
 use App\Enums\PaymentStatus;
+use App\Support\PlatformSettings;
 use Database\Factories\OrderFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -135,6 +136,8 @@ class Order extends Model
             return false;
         }
 
-        return $this->created_at?->lte(now()->subMinutes((int) config('towseela.overdue_minutes'))) ?? false;
+        $overdueMinutes = (int) app(PlatformSettings::class)->operations()['overdue_minutes'];
+
+        return $this->created_at?->lte(now()->subMinutes($overdueMinutes)) ?? false;
     }
 }

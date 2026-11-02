@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\CartItem;
 use App\Models\Product;
 use App\Services\CartService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -18,13 +19,14 @@ class CartController extends Controller
     public function show(Request $request): Response
     {
         $cart = $this->carts->forUser($request->user());
+        $request->user()->loadMissing('defaultAddress.deliveryZone.feeRules');
 
         return Inertia::render('Customer/Cart', [
             'summary' => $this->carts->summary($cart, $request->user()->defaultAddress),
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request): JsonResponse|RedirectResponse
     {
         $data = $request->validate([
             'product_id' => ['required', 'exists:products,id'],
@@ -42,10 +44,14 @@ class CartController extends Controller
             $data['notes'] ?? null,
         );
 
+        if ($request->expectsJson()) {
+            return response()->json($this->carts->snapshot($this->carts->forUser($request->user())));
+        }
+
         return back()->with('success', __('تمت إضافة المنتج إلى السلة.'));
     }
 
-    public function update(Request $request, CartItem $cartItem): RedirectResponse
+    public function update(Request $request, CartItem $cartItem): JsonResponse|RedirectResponse
     {
         abort_unless($cartItem->cart?->user_id === $request->user()->id, 403);
 
@@ -55,13 +61,21 @@ class CartController extends Controller
 
         $this->carts->updateQuantity($cartItem, $data['quantity']);
 
+        if ($request->expectsJson()) {
+            return response()->json($this->carts->snapshot($this->carts->forUser($request->user())));
+        }
+
         return back();
     }
 
-    public function destroy(Request $request, CartItem $cartItem): RedirectResponse
+    public function destroy(Request $request, CartItem $cartItem): JsonResponse|RedirectResponse
     {
         abort_unless($cartItem->cart?->user_id === $request->user()->id, 403);
         $this->carts->removeItem($cartItem);
+
+        if ($request->expectsJson()) {
+            return response()->json($this->carts->snapshot($this->carts->forUser($request->user())));
+        }
 
         return back();
     }

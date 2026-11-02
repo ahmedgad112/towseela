@@ -7,13 +7,13 @@ defineProps({
 </script>
 
 <template>
-    <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-            <p v-if="eyebrow" class="text-xs font-semibold tracking-wide text-gold">{{ eyebrow }}</p>
-            <h2 class="mt-1 text-2xl font-bold text-navy">{{ title }}</h2>
-            <p v-if="text" class="mt-1 max-w-2xl text-sm leading-6 text-muted">{{ text }}</p>
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
+        <div class="min-w-0">
+            <p v-if="eyebrow" class="dashboard-eyebrow">{{ eyebrow }}</p>
+            <h2 class="dashboard-heading" :class="eyebrow ? 'mt-1' : ''">{{ title }}</h2>
+            <p v-if="text" class="dashboard-text max-w-2xl">{{ text }}</p>
         </div>
-        <div class="flex flex-wrap items-center gap-2">
+        <div v-if="$slots.default" class="flex flex-wrap items-center gap-2 sm:gap-2.5">
             <slot />
         </div>
     </div>

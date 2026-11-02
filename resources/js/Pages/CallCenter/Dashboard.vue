@@ -7,6 +7,7 @@ import UiButton from '../../Components/UiButton.vue';
 import EmptyState from '../../Components/EmptyState.vue';
 import Pagination from '../../Components/Pagination.vue';
 import AppIcon from '../../Components/AppIcon.vue';
+import { useOrderLive } from '../../orderLive';
 import { money, primaryRole, workspaceFor } from '../../workspace';
 
 defineOptions({ layout: CallCenterLayout });
@@ -25,6 +26,11 @@ const canAssign = computed(() => page.props.auth.roles.includes('super_admin') |
 const canConfirm = computed(() => page.props.auth.roles.includes('super_admin') || page.props.auth.permissions.includes('orders.confirm'));
 const currency = computed(() => page.props.currencyLabel || 'ج.م');
 const assignForms = Object.fromEntries((props.orders.data || []).map((order) => [order.id, useForm({ driver_id: '' })]));
+const { live } = useOrderLive({
+    channel: 'ops',
+    only: ['orders', 'drivers', 'counts'],
+    soundOn: ['created', 'assigned', 'updated'],
+});
 
 const chips = [
     { value: '', label: 'النشطة' },
@@ -38,29 +44,39 @@ const filter = (status = props.filters.status || '') => router.get('/dispatch', 
 </script>
 
 <template>
-    <section class="overflow-hidden rounded-3xl bg-navy px-5 py-6 text-white sm:px-7">
-        <p class="text-xs font-semibold tracking-wide text-gold">{{ workspace.eyebrow }}</p>
-        <h2 class="mt-2 text-2xl font-bold">{{ workspace.title }}</h2>
-        <p class="mt-2 max-w-2xl text-sm leading-7 text-white/70">
+    <section class="dashboard-hero">
+        <div class="flex items-start justify-between gap-3">
+            <div class="min-w-0">
+                <p class="dashboard-eyebrow">{{ workspace.eyebrow }}</p>
+                <h2 class="dashboard-title mt-1.5 sm:mt-2">{{ workspace.title }}</h2>
+            </div>
+            <span
+                class="shrink-0 rounded-full px-3 py-1 text-[11px] font-bold sm:text-xs"
+                :class="live ? 'bg-gold text-navy' : 'bg-white/10 text-white/70'"
+            >
+                {{ live ? 'مباشر' : '...' }}
+            </span>
+        </div>
+        <p class="dashboard-subtitle">
             {{ role === 'dispatcher' ? 'وزّع الطلبات على المناديب المتاحين وتابع التحميل الحالي.' : 'أكد الطلبات الواردة وتواصل مع العميل عند الحاجة.' }}
         </p>
     </section>
 
-    <div class="grid gap-4 md:grid-cols-2">
-        <button class="rounded-3xl bg-gold p-5 text-start text-navy" @click="filter('pending_confirmation')">
-            <p class="text-sm font-medium">طلبات واردة</p>
-            <p class="mt-1 text-3xl font-bold">{{ counts.incoming }}</p>
-            <p class="mt-1 text-xs text-navy/70">بانتظار التأكيد من مركز الاتصال</p>
+    <div class="grid gap-3 sm:gap-3.5 md:grid-cols-2">
+        <button class="rounded-[1.35rem] bg-gold p-4 text-start text-navy sm:rounded-3xl sm:p-5" @click="filter('pending_confirmation')">
+            <p class="dashboard-metric-label text-navy/80">طلبات واردة</p>
+            <p class="mt-1 text-2xl font-extrabold tracking-tight sm:text-3xl">{{ counts.incoming }}</p>
+            <p class="mt-1 text-[11px] leading-5 text-navy/70 sm:text-xs">بانتظار التأكيد من مركز الاتصال</p>
         </button>
-        <article class="app-card p-5">
-            <p class="text-sm text-muted">طلبات متأخرة</p>
-            <p class="mt-1 text-3xl font-bold text-navy">{{ counts.overdue }}</p>
-            <p class="mt-1 text-xs text-muted">تجاوزت مدة المعالجة المتوقعة</p>
+        <article class="app-card p-4 sm:p-5">
+            <p class="dashboard-metric-label">طلبات متأخرة</p>
+            <p class="dashboard-metric-value">{{ counts.overdue }}</p>
+            <p class="mt-1 text-[11px] leading-5 text-muted sm:text-xs">تجاوزت مدة المعالجة المتوقعة</p>
         </article>
     </div>
 
-    <form class="app-card flex flex-col gap-3 p-3 sm:flex-row sm:items-center" @submit.prevent="filter()">
-        <input v-model="q" class="min-h-12 flex-1 rounded-2xl bg-canvas px-4" placeholder="رقم الطلب / الاسم / الهاتف">
+    <form class="app-card flex flex-col gap-2.5 p-2.5 sm:flex-row sm:items-center sm:gap-3 sm:p-3" @submit.prevent="filter()">
+        <input v-model="q" class="min-h-11 flex-1 rounded-2xl bg-canvas px-4 text-sm sm:min-h-12" placeholder="رقم الطلب / الاسم / الهاتف">
         <UiButton type="submit">بحث</UiButton>
     </form>
 
@@ -76,19 +92,19 @@ const filter = (status = props.filters.status || '') => router.get('/dispatch', 
         </button>
     </div>
 
-    <div class="grid gap-4 xl:grid-cols-[minmax(0,2fr)_20rem]">
+    <div class="grid gap-4 xl:grid-cols-[minmax(0,2fr)_20rem] xl:gap-5">
         <section class="space-y-3">
             <EmptyState v-if="!orders.data?.length" title="لا توجد طلبات في هذا التصفية" text="غيّر الحالة أو ابحث برقم الطلب أو هاتف العميل." />
-            <article v-for="order in orders.data" :key="order.id" class="app-card p-4">
+            <article v-for="order in orders.data" :key="order.id" class="app-card p-3.5 sm:p-4">
                 <div class="flex flex-wrap items-start justify-between gap-3">
-                    <div>
-                        <Link :href="`/dispatch/orders/${order.id}`" class="text-lg font-bold text-navy hover:text-navy-secondary">{{ order.number }}</Link>
-                        <p class="mt-1 text-sm text-navy">{{ order.customer?.name }} · {{ order.customer?.phone }}</p>
+                    <div class="min-w-0">
+                        <Link :href="`/dispatch/orders/${order.id}`" class="text-base font-extrabold tracking-tight text-navy hover:text-navy-secondary sm:text-lg">{{ order.number }}</Link>
+                        <p class="mt-1 text-[13px] text-navy sm:text-sm">{{ order.customer?.name }} · {{ order.customer?.phone }}</p>
                     </div>
                     <StatusBadge :status="order.status" />
                 </div>
-                <p class="mt-2 text-sm text-muted">{{ order.business?.name_ar }} · {{ order.address_snapshot?.line1 }}</p>
-                <p class="mt-1 text-sm font-semibold text-navy">{{ money(order.grand_total, currency) }}</p>
+                <p class="mt-2 text-[13px] leading-6 text-muted sm:text-sm">{{ order.business?.name_ar }} · {{ order.address_snapshot?.line1 }}</p>
+                <p class="mt-1 text-[13px] font-bold text-navy sm:text-sm">{{ money(order.grand_total, currency) }}</p>
                 <form v-if="canAssign" class="mt-4 flex flex-col gap-2 sm:flex-row" @submit.prevent="assignForms[order.id].post(`/dispatch/orders/${order.id}/assign`)">
                     <select v-model="assignForms[order.id].driver_id" class="app-select flex-1">
                         <option value="">مندوب متاح</option>
@@ -104,24 +120,26 @@ const filter = (status = props.filters.status || '') => router.get('/dispatch', 
             </article>
             <Pagination :links="orders.links" />
         </section>
-        <aside class="app-card h-fit p-5">
-            <div class="mb-3 flex items-center gap-2">
+        <aside class="space-y-3">
+            <div class="app-card flex items-center gap-2 p-4">
                 <span class="grid size-9 place-items-center rounded-2xl bg-navy text-gold"><AppIcon name="truck" /></span>
                 <div>
                     <h3 class="font-bold text-navy">المناديب</h3>
                     <p class="text-xs text-muted">التوفر محسوب من السجلات الحالية</p>
                 </div>
             </div>
-            <p v-if="!drivers.length" class="text-sm text-muted">لا يوجد مناديب مسجّلون.</p>
-            <p v-for="driver in drivers" :key="driver.id" class="flex items-center justify-between border-b border-line py-2.5 text-sm last:border-0">
-                <span>
-                    <span class="block font-medium text-navy">{{ driver.name }}</span>
-                    <span class="text-xs text-muted">{{ driver.active_assignments_count }} طلب نشط</span>
-                </span>
-                <span class="rounded-full px-2.5 py-1 text-xs font-semibold" :class="driver.available ? 'bg-emerald-50 text-emerald-700' : 'bg-canvas text-muted'">
-                    {{ driver.available ? 'متاح' : 'مشغول' }}
-                </span>
-            </p>
+            <p v-if="!drivers.length" class="app-card p-4 text-sm text-muted">لا يوجد مناديب مسجّلون.</p>
+            <article v-for="driver in drivers" :key="driver.id" class="app-item-card">
+                <div class="flex items-start justify-between gap-3">
+                    <div>
+                        <p class="font-semibold text-navy">{{ driver.name }}</p>
+                        <p class="mt-1 text-xs text-muted">{{ driver.active_assignments_count }} طلب نشط</p>
+                    </div>
+                    <span class="rounded-full px-2.5 py-1 text-xs font-semibold" :class="driver.available ? 'bg-emerald-50 text-emerald-700' : 'bg-canvas text-muted'">
+                        {{ driver.available ? 'متاح' : 'مشغول' }}
+                    </span>
+                </div>
+            </article>
         </aside>
     </div>
 </template>

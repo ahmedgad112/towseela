@@ -34,7 +34,13 @@ class OrderController extends Controller
     {
         $this->authorize('view', $order);
 
-        $order->load(['business', 'items', 'statusHistories.actor', 'payment']);
+        $order->load([
+            'business',
+            'items',
+            'statusHistories.actor',
+            'payment',
+            'driver:id,name,phone',
+        ]);
 
         return Inertia::render('Customer/Orders/Show', [
             'order' => $order,

@@ -226,47 +226,31 @@ const deleteProduct = (product) => {
     </div>
 
     <FormSection title="منتجات المتجر" :text="products.length ? 'عدّل أو احذف أي منتج من هنا.' : 'أضف أول منتج لهذا المتجر.'">
-        <div v-if="products.length" class="overflow-x-auto">
-            <table class="app-table">
-                <thead class="bg-canvas text-muted">
-                    <tr>
-                        <th></th>
-                        <th>المنتج</th>
-                        <th>التصنيف</th>
-                        <th>السعر</th>
-                        <th>الحالة</th>
-                        <th v-if="canManageCatalog"></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr v-for="product in products" :key="product.id" class="border-t border-line">
-                        <td>
-                            <img v-if="product.image_url" :src="product.image_url" alt="" class="size-12 rounded-2xl object-cover">
-                            <span v-else class="grid size-12 place-items-center rounded-2xl bg-canvas text-xs text-muted">صورة</span>
-                        </td>
-                        <td class="font-semibold text-navy">{{ product.name_ar }}</td>
-                        <td>{{ product.category?.name_ar || 'عام' }}</td>
-                        <td>{{ money(product.price, currency) }}</td>
-                        <td>
-                            <button
-                                type="button"
-                                class="rounded-full px-2.5 py-1 text-xs font-semibold transition"
-                                :class="product.is_available ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100' : 'bg-canvas text-muted hover:bg-line'"
-                                :disabled="!canManageCatalog"
-                                @click="toggleProductAvailability(product)"
-                            >
-                                {{ product.is_available ? 'متاح' : 'غير متاح' }}
-                            </button>
-                        </td>
-                        <td v-if="canManageCatalog">
-                            <div class="flex gap-3">
-                                <button type="button" class="text-sm font-semibold text-gold" @click="editProduct(product)">تعديل</button>
-                                <button type="button" class="text-sm font-semibold text-red-600" @click="deleteProduct(product)">حذف</button>
-                            </div>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+        <div v-if="products.length" class="app-card-grid xl:grid-cols-2">
+            <article v-for="product in products" :key="product.id" class="rounded-2xl border border-line bg-canvas/40 p-4">
+                <div class="flex items-start gap-3">
+                    <img v-if="product.image_url" :src="product.image_url" alt="" class="size-14 rounded-2xl object-cover">
+                    <span v-else class="grid size-14 place-items-center rounded-2xl bg-white text-xs text-muted">صورة</span>
+                    <div class="min-w-0 flex-1">
+                        <p class="font-bold text-navy">{{ product.name_ar }}</p>
+                        <p class="mt-1 text-sm text-muted">{{ product.category?.name_ar || 'عام' }}</p>
+                        <p class="mt-2 font-semibold text-navy">{{ money(product.price, currency) }}</p>
+                    </div>
+                    <button
+                        type="button"
+                        class="rounded-full px-2.5 py-1 text-xs font-semibold transition"
+                        :class="product.is_available ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100' : 'bg-white text-muted hover:bg-line'"
+                        :disabled="!canManageCatalog"
+                        @click="toggleProductAvailability(product)"
+                    >
+                        {{ product.is_available ? 'متاح' : 'غير متاح' }}
+                    </button>
+                </div>
+                <div v-if="canManageCatalog" class="mt-3 flex gap-3 border-t border-line pt-3">
+                    <button type="button" class="text-sm font-semibold text-gold" @click="editProduct(product)">تعديل</button>
+                    <button type="button" class="text-sm font-semibold text-red-600" @click="deleteProduct(product)">حذف</button>
+                </div>
+            </article>
         </div>
         <EmptyState v-else title="لا توجد منتجات" text="أضف تصنيفاً ثم منتجاً ليظهر للعملاء داخل هذا المتجر." />
     </FormSection>

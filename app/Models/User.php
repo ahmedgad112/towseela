@@ -14,7 +14,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 
-#[Fillable(['name', 'email', 'phone', 'password', 'is_active'])]
+#[Fillable(['name', 'email', 'google_id', 'phone', 'password', 'is_active', 'email_verified_at'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -85,13 +85,13 @@ class User extends Authenticatable
 
     public function isStaff(): bool
     {
-        return $this->hasAnyRole([
-            'super_admin',
-            'admin',
-            'call_center_agent',
-            'dispatcher',
-            'business_manager',
-        ]);
+        $roles = $this->relationLoaded('roles')
+            ? $this->roles
+            : $this->roles()->get();
+
+        return $roles->contains(
+            fn ($role): bool => ! in_array($role->name, ['customer', 'driver'], true),
+        );
     }
 
     public function portalHome(): string

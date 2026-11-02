@@ -429,7 +429,12 @@ class BusinessController extends Controller
         $data['is_active'] = $request->boolean('is_active', true);
 
         if ($request->hasFile('image')) {
-            $data['image_path'] = CatalogImage::store($request->file('image'), 'products', $product?->image_path);
+            $data['image_path'] = CatalogImage::store(
+                $request->file('image'),
+                'products',
+                $product?->image_path,
+                CatalogImage::PRODUCT_MAX_WIDTH,
+            );
         }
 
         unset($data['image']);

@@ -27,6 +27,7 @@ class PermissionCatalog
             ['name' => 'orders.confirm', 'label' => 'تأكيد الطلب', 'group' => 'الطلبات'],
             ['name' => 'orders.assign_driver', 'label' => 'تعيين مندوب', 'group' => 'الطلبات'],
             ['name' => 'orders.cancel', 'label' => 'رفض أو إلغاء الطلب', 'group' => 'الطلبات'],
+            ['name' => 'orders.delete', 'label' => 'حذف الطلب', 'group' => 'الطلبات'],
             ['name' => 'orders.note', 'label' => 'حفظ ملاحظة داخلية', 'group' => 'الطلبات'],
             ['name' => 'orders.mark_delivered', 'label' => 'تأكيد أو فشل التسليم', 'group' => 'الطلبات'],
             ['name' => 'drivers.view', 'label' => 'عرض المناديب', 'group' => 'المناديب'],
@@ -41,6 +42,14 @@ class PermissionCatalog
             ['name' => 'permissions.create', 'label' => 'إنشاء صلاحية', 'group' => 'الصلاحيات'],
             ['name' => 'permissions.delete', 'label' => 'حذف صلاحية', 'group' => 'الصلاحيات'],
             ['name' => 'audit.view', 'label' => 'عرض سجل التدقيق', 'group' => 'التدقيق'],
+            ['name' => 'customer.search', 'label' => 'زر البحث', 'group' => 'أزرار العميل'],
+            ['name' => 'customer.cart', 'label' => 'السلة وإضافة منتجات', 'group' => 'أزرار العميل'],
+            ['name' => 'customer.checkout', 'label' => 'إتمام الطلب', 'group' => 'أزرار العميل'],
+            ['name' => 'customer.coupons', 'label' => 'تطبيق كوبون', 'group' => 'أزرار العميل'],
+            ['name' => 'customer.addresses', 'label' => 'إدارة العناوين', 'group' => 'أزرار العميل'],
+            ['name' => 'customer.orders', 'label' => 'عرض طلباتي', 'group' => 'أزرار العميل'],
+            ['name' => 'customer.reorder', 'label' => 'إعادة الطلب', 'group' => 'أزرار العميل'],
+            ['name' => 'customer.cancel_order', 'label' => 'إلغاء الطلب', 'group' => 'أزرار العميل'],
         ];
     }
 
@@ -80,6 +89,7 @@ class PermissionCatalog
                 'users.view',
                 'users.create',
                 'users.update',
+                'users.delete',
                 'businesses.view',
                 'businesses.manage',
                 'categories.manage',
@@ -92,6 +102,7 @@ class PermissionCatalog
                 'orders.confirm',
                 'orders.assign_driver',
                 'orders.cancel',
+                'orders.delete',
                 'orders.note',
                 'drivers.view',
                 'drivers.manage',
@@ -120,6 +131,14 @@ class PermissionCatalog
             ],
             'customer' => [
                 'orders.create',
+                'customer.search',
+                'customer.cart',
+                'customer.checkout',
+                'customer.coupons',
+                'customer.addresses',
+                'customer.orders',
+                'customer.reorder',
+                'customer.cancel_order',
             ],
             'business_manager' => [
                 'dashboard.view',

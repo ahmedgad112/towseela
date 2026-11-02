@@ -53,13 +53,22 @@ class OrderPolicy
 
     public function cancel(User $user, Order $order): bool
     {
+        if ($order->status->isTerminal()) {
+            return false;
+        }
+
         if ($user->can('orders.cancel')) {
-            return true;
+            return $order->status->canTransitionTo(OrderStatus::Cancelled);
         }
 
         return $user->hasRole('customer')
             && $order->user_id === $user->id
-            && in_array($order->status, [OrderStatus::New, OrderStatus::PendingConfirmation], true);
+            && $order->status->isCustomerCancellable();
+    }
+
+    public function delete(User $user, Order $order): bool
+    {
+        return $user->can('orders.delete');
     }
 
     public function pickup(User $user, Order $order): bool

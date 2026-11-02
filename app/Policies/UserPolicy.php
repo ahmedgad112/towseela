@@ -23,11 +23,19 @@ class UserPolicy
 
     public function update(User $user, User $model): bool
     {
-        return $user->can('users.update') || $user->is($model);
+        if ($model->hasRole('super_admin') && ! $user->hasRole('super_admin')) {
+            return false;
+        }
+
+        return $user->can('users.update');
     }
 
     public function delete(User $user, User $model): bool
     {
-        return $user->can('users.delete') && ! $user->is($model);
+        if ($user->is($model) || $model->hasRole('super_admin')) {
+            return false;
+        }
+
+        return $user->can('users.delete');
     }
 }

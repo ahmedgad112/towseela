@@ -12,8 +12,8 @@ defineProps({
             v-for="(link, index) in links"
             :key="index"
             :href="link.url || '#'"
-            :class="link.active ? 'bg-navy text-white' : 'border border-line bg-white text-muted hover:border-gold'"
-            class="inline-flex min-h-9 items-center rounded-xl px-3 text-sm"
+            :class="link.active ? 'bg-navy text-white shadow-[0_8px_16px_rgba(12,24,48,0.18)]' : 'border border-line bg-white/90 text-muted hover:border-gold'"
+            class="inline-flex min-h-9 items-center rounded-2xl px-3 text-sm"
             preserve-scroll
             v-html="link.label"
         />

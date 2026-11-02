@@ -13,6 +13,7 @@ use App\Models\Order;
 use App\Models\User;
 use App\Support\AuditLogger;
 use App\Support\Money;
+use App\Support\OrderRealtime;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -23,6 +24,7 @@ class CheckoutService
         private CartService $carts,
         private PricingService $pricing,
         private AuditLogger $audit,
+        private OrderRealtime $realtime,
     ) {}
 
     public function place(User $user, CustomerAddress $address, string $checkoutToken, ?string $notes = null): Order
@@ -33,7 +35,7 @@ class CheckoutService
             ]);
         }
 
-        return DB::transaction(function () use ($user, $address, $checkoutToken, $notes) {
+        $order = DB::transaction(function () use ($user, $address, $checkoutToken, $notes) {
             if (Order::query()->where('checkout_token', $checkoutToken)->lockForUpdate()->exists()) {
                 throw ValidationException::withMessages([
                     'checkout_token' => __('تم إنشاء هذا الطلب مسبقاً.'),
@@ -156,6 +158,10 @@ class CheckoutService
 
             return $order->load(['items', 'business', 'payment']);
         });
+
+        $this->realtime->orderCreated($order);
+
+        return $order;
     }
 
     private function nextNumber(): string

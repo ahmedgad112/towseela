@@ -1,17 +1,23 @@
 <?php
 
 use App\Http\Controllers\Admin;
+use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\CallCenter;
 use App\Http\Controllers\Customer;
 use App\Http\Controllers\Driver;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Realtime\OrderPulseController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', Customer\HomeController::class)->name('customer.home');
 Route::get('/search', Customer\SearchController::class)->name('customer.search');
 Route::get('/businesses/{business:slug}', [Customer\BusinessController::class, 'show'])->name('customer.businesses.show');
+Route::get('/products/{product}/options', [Customer\ProductController::class, 'options'])
+    ->middleware('throttle:60,1')
+    ->name('customer.products.options');
 Route::get('/location/reverse', [Customer\LocationController::class, 'reverse'])->middleware('throttle:30,1')->name('customer.location.reverse');
 Route::get('/location/search', [Customer\LocationController::class, 'search'])->middleware('throttle:30,1')->name('customer.location.search');
 
@@ -20,28 +26,63 @@ Route::middleware('guest')->group(function () {
     Route::post('/login', [LoginController::class, 'store'])->middleware('throttle:login');
     Route::get('/register', [RegisterController::class, 'create'])->name('register');
     Route::post('/register', [RegisterController::class, 'store'])->middleware('throttle:register');
+    Route::get('/auth/google/redirect', [GoogleAuthController::class, 'redirect'])
+        ->middleware('throttle:20,1')
+        ->name('auth.google.redirect');
+    Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])
+        ->middleware('throttle:20,1')
+        ->name('auth.google.callback');
 });
 
 Route::post('/logout', [LogoutController::class, 'store'])->middleware('auth')->name('logout');
 
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::put('/profile/password', [ProfileController::class, 'updatePassword'])
+        ->middleware('throttle:password-update')
+        ->name('profile.password.update');
+
+    Route::get('/realtime/orders/pulse', OrderPulseController::class)
+        ->middleware('throttle:120,1')
+        ->name('realtime.orders.pulse');
+});
+
 Route::middleware(['auth', 'role:customer'])->group(function () {
-    Route::get('/cart', [Customer\CartController::class, 'show'])->name('customer.cart');
-    Route::post('/cart', [Customer\CartController::class, 'store'])->name('customer.cart.store');
-    Route::patch('/cart/items/{cartItem}', [Customer\CartController::class, 'update'])->name('customer.cart.update');
-    Route::delete('/cart/items/{cartItem}', [Customer\CartController::class, 'destroy'])->name('customer.cart.destroy');
-    Route::post('/cart/coupon', [Customer\CartController::class, 'applyCoupon'])->name('customer.cart.coupon');
-    Route::get('/checkout', [Customer\CheckoutController::class, 'create'])->name('customer.checkout');
-    Route::post('/checkout', [Customer\CheckoutController::class, 'store'])->name('customer.checkout.store');
-    Route::get('/orders', [Customer\OrderController::class, 'index'])->name('customer.orders.index');
-    Route::get('/orders/{order}', [Customer\OrderController::class, 'show'])->name('customer.orders.show');
-    Route::post('/orders/{order}/reorder', [Customer\OrderController::class, 'reorder'])->name('customer.orders.reorder');
-    Route::post('/orders/{order}/cancel', [Customer\OrderController::class, 'cancel'])->name('customer.orders.cancel');
-    Route::get('/account', [Customer\ProfileController::class, 'edit'])->name('customer.profile');
-    Route::patch('/account', [Customer\ProfileController::class, 'update'])->name('customer.profile.update');
-    Route::get('/addresses', [Customer\AddressController::class, 'index'])->name('customer.addresses.index');
-    Route::post('/addresses', [Customer\AddressController::class, 'store'])->name('customer.addresses.store');
-    Route::patch('/addresses/{address}', [Customer\AddressController::class, 'update'])->name('customer.addresses.update');
-    Route::delete('/addresses/{address}', [Customer\AddressController::class, 'destroy'])->name('customer.addresses.destroy');
+    Route::middleware('permission:customer.cart')->group(function () {
+        Route::get('/cart', [Customer\CartController::class, 'show'])->name('customer.cart');
+        Route::post('/cart', [Customer\CartController::class, 'store'])->name('customer.cart.store');
+        Route::patch('/cart/items/{cartItem}', [Customer\CartController::class, 'update'])->name('customer.cart.update');
+        Route::delete('/cart/items/{cartItem}', [Customer\CartController::class, 'destroy'])->name('customer.cart.destroy');
+    });
+    Route::post('/cart/coupon', [Customer\CartController::class, 'applyCoupon'])
+        ->middleware('permission:customer.coupons')
+        ->name('customer.cart.coupon');
+    Route::middleware('permission:customer.checkout')->group(function () {
+        Route::get('/checkout', [Customer\CheckoutController::class, 'create'])->name('customer.checkout');
+        Route::post('/checkout', [Customer\CheckoutController::class, 'store'])->name('customer.checkout.store');
+    });
+    Route::middleware('permission:customer.orders')->group(function () {
+        Route::get('/orders', [Customer\OrderController::class, 'index'])->name('customer.orders.index');
+        Route::get('/orders/{order}', [Customer\OrderController::class, 'show'])->name('customer.orders.show');
+    });
+    Route::post('/orders/{order}/reorder', [Customer\OrderController::class, 'reorder'])
+        ->middleware('permission:customer.reorder')
+        ->name('customer.orders.reorder');
+    Route::post('/orders/{order}/cancel', [Customer\OrderController::class, 'cancel'])
+        ->middleware('permission:customer.cancel_order')
+        ->name('customer.orders.cancel');
+    Route::get('/account', [ProfileController::class, 'edit'])->name('customer.profile');
+    Route::patch('/account', [ProfileController::class, 'update'])->name('customer.profile.update');
+    Route::put('/account/password', [ProfileController::class, 'updatePassword'])
+        ->middleware('throttle:password-update')
+        ->name('customer.profile.password');
+    Route::middleware('permission:customer.addresses')->group(function () {
+        Route::get('/addresses', [Customer\AddressController::class, 'index'])->name('customer.addresses.index');
+        Route::post('/addresses', [Customer\AddressController::class, 'store'])->name('customer.addresses.store');
+        Route::patch('/addresses/{address}', [Customer\AddressController::class, 'update'])->name('customer.addresses.update');
+        Route::delete('/addresses/{address}', [Customer\AddressController::class, 'destroy'])->name('customer.addresses.destroy');
+    });
 });
 
 Route::middleware(['auth', 'role:super_admin|admin|business_manager'])->prefix('admin')->name('admin.')->group(function () {
@@ -49,6 +90,8 @@ Route::middleware(['auth', 'role:super_admin|admin|business_manager'])->prefix('
     Route::get('/orders', [Admin\OrderController::class, 'index'])->name('orders.index');
     Route::get('/orders/{order}', [Admin\OrderController::class, 'show'])->name('orders.show');
     Route::post('/orders/{order}/transition', [Admin\OrderController::class, 'transition'])->name('orders.transition');
+    Route::post('/orders/{order}/cancel', [Admin\OrderController::class, 'cancel'])->name('orders.cancel');
+    Route::delete('/orders/{order}', [Admin\OrderController::class, 'destroy'])->name('orders.destroy');
     Route::post('/orders/{order}/assign', [Admin\OrderController::class, 'assign'])->name('orders.assign');
     Route::get('/customers', [Admin\CustomerController::class, 'index'])->name('customers.index');
     Route::get('/customers/{user}', [Admin\CustomerController::class, 'show'])->name('customers.show');
@@ -79,13 +122,17 @@ Route::middleware(['auth', 'role:super_admin|admin|business_manager'])->prefix('
     Route::patch('/coupons/{coupon}', [Admin\CouponController::class, 'update'])->name('coupons.update');
     Route::get('/zones', [Admin\DeliveryZoneController::class, 'index'])->name('zones.index');
     Route::post('/zones', [Admin\DeliveryZoneController::class, 'store'])->name('zones.store');
+    Route::delete('/zones/{deliveryZone}', [Admin\DeliveryZoneController::class, 'destroy'])->name('zones.destroy');
     Route::post('/zones/{deliveryZone}/rules', [Admin\DeliveryZoneController::class, 'storeRule'])->name('zones.rules.store');
     Route::patch('/zone-rules/{deliveryFeeRule}', [Admin\DeliveryZoneController::class, 'updateRule'])->name('zones.rules.update');
+    Route::delete('/zone-rules/{deliveryFeeRule}', [Admin\DeliveryZoneController::class, 'destroyRule'])->name('zones.rules.destroy');
     Route::get('/drivers', [Admin\DriverController::class, 'index'])->name('drivers.index');
     Route::post('/drivers', [Admin\DriverController::class, 'store'])->name('drivers.store');
     Route::patch('/drivers/{driver}', [Admin\DriverController::class, 'update'])->name('drivers.update');
     Route::get('/staff', [Admin\StaffController::class, 'index'])->name('staff.index');
     Route::post('/staff', [Admin\StaffController::class, 'store'])->name('staff.store');
+    Route::patch('/staff/{staff}', [Admin\StaffController::class, 'update'])->name('staff.update');
+    Route::delete('/staff/{staff}', [Admin\StaffController::class, 'destroy'])->name('staff.destroy');
     Route::get('/roles', [Admin\RoleController::class, 'index'])->name('roles.index');
     Route::post('/roles', [Admin\RoleController::class, 'store'])->name('roles.store');
     Route::patch('/roles/{role}', [Admin\RoleController::class, 'update'])->name('roles.update');

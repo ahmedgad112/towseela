@@ -47,35 +47,23 @@ const search = () => router.get('/admin/audit-logs', {
             <button class="min-h-12 rounded-2xl bg-navy px-4 text-sm font-semibold text-white">تصفية</button>
         </div>
     </form>
-    <div class="app-card overflow-hidden">
-        <div v-if="logs.data?.length" class="overflow-x-auto">
-            <table class="app-table">
-                <thead class="bg-canvas text-muted">
-                    <tr>
-                        <th>الإجراء</th>
-                        <th>الممثل</th>
-                        <th>العنصر</th>
-                        <th>التفاصيل</th>
-                        <th>IP</th>
-                        <th>الوقت</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr v-for="log in logs.data" :key="log.id" class="border-t border-line align-top hover:bg-canvas/60">
-                        <td class="font-semibold text-navy">{{ log.action_label }}</td>
-                        <td>
-                            <span class="block">{{ log.actor?.name || 'نظام' }}</span>
-                            <span class="text-xs text-muted">{{ log.actor?.email }}</span>
-                        </td>
-                        <td>{{ log.entity }} #{{ log.entity_id }}</td>
-                        <td class="max-w-xs text-xs text-muted">{{ log.metadata ? JSON.stringify(log.metadata) : '—' }}</td>
-                        <td>{{ log.ip_address || '—' }}</td>
-                        <td>{{ log.created_at }}</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-        <EmptyState v-else title="لا توجد أحداث مطابقة" text="غيّر الفلاتر أو نفّذ إجراءاً إدارياً ليظهر هنا." />
+    <div v-if="logs.data?.length" class="app-card-grid">
+        <article v-for="log in logs.data" :key="log.id" class="app-item-card">
+            <div class="flex items-start justify-between gap-3">
+                <div>
+                    <p class="font-bold text-navy">{{ log.action_label }}</p>
+                    <p class="mt-1 text-sm text-muted">{{ log.actor?.name || 'نظام' }}</p>
+                    <p v-if="log.actor?.email" class="text-xs text-muted">{{ log.actor.email }}</p>
+                </div>
+                <span class="text-xs text-muted">{{ log.created_at }}</span>
+            </div>
+            <div class="space-y-1 border-t border-line pt-3 text-sm">
+                <p class="text-navy">{{ log.entity }} #{{ log.entity_id }}</p>
+                <p class="break-all text-xs text-muted">{{ log.metadata ? JSON.stringify(log.metadata) : '—' }}</p>
+                <p class="text-xs text-muted">IP: {{ log.ip_address || '—' }}</p>
+            </div>
+        </article>
     </div>
+    <EmptyState v-else title="لا توجد أحداث مطابقة" text="غيّر الفلاتر أو نفّذ إجراءاً إدارياً ليظهر هنا." />
     <Pagination :links="logs.links" />
 </template>

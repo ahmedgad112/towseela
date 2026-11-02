@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Support\PlatformSettings;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
@@ -9,7 +10,10 @@ use Illuminate\Support\Str;
 
 class GeocodingService
 {
-    public function __construct(private DeliveryZoneMatcher $zones) {}
+    public function __construct(
+        private DeliveryZoneMatcher $zones,
+        private PlatformSettings $platformSettings,
+    ) {}
 
     /**
      * @return array{line1: string, city: string, place: string, governorate: string|null, display_name: string, lat: float, lng: float, delivery_zone_id: int|null}|null
@@ -135,6 +139,6 @@ class GeocodingService
      */
     private function resolveCity(array $address): string
     {
-        return (string) ($address['city'] ?? $address['town'] ?? $address['village'] ?? $address['state'] ?? config('towseela.map.default_city'));
+        return (string) ($address['city'] ?? $address['town'] ?? $address['village'] ?? $address['state'] ?? $this->platformSettings->map()['default_city']);
     }
 }

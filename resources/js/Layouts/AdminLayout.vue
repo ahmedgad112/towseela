@@ -60,85 +60,100 @@ const sections = computed(() => [
 })).filter((section) => section.items.length > 0));
 
 const visibleLinks = computed(() => sections.value.flatMap((section) => section.items));
-const currentTitle = computed(() => visibleLinks.value.find((item) => item.match(page.url))?.label || workspace.value.title);
+const currentTitle = computed(() => {
+    if (page.url.startsWith('/profile')) {
+        return 'حسابي';
+    }
+
+    return visibleLinks.value.find((item) => item.match(page.url))?.label || workspace.value.title;
+});
 </script>
 
 <template>
-    <div class="min-h-screen bg-canvas lg:grid lg:grid-cols-[17rem_1fr]">
-        <div v-if="open" class="fixed inset-0 z-30 bg-navy/40 lg:hidden" @click="open = false" />
+    <div class="min-h-screen bg-canvas lg:grid lg:grid-cols-[17.5rem_1fr]">
+        <div v-if="open" class="fixed inset-0 z-30 bg-navy/45 backdrop-blur-[2px] transition lg:hidden" @click="open = false" />
         <aside
-            class="fixed inset-y-0 start-0 z-40 flex w-72 flex-col bg-navy text-white transition duration-200 lg:static lg:w-auto lg:translate-x-0"
+            class="app-sidebar fixed inset-y-0 start-0 z-40 flex w-[17.5rem] flex-col text-white transition duration-300 ease-out lg:static lg:w-auto lg:translate-x-0"
             :class="open ? 'translate-x-0' : 'max-lg:ltr:-translate-x-full max-lg:rtl:translate-x-full'"
         >
-            <div class="flex items-center justify-between px-5 py-5">
-                <Link href="/admin" class="flex items-center gap-2" @click="open = false">
-                    <AppLogo class="size-10 rounded-2xl" />
-                    <span>
-                        <span class="block text-lg font-bold leading-none">توسيلا</span>
-                        <span class="text-[11px] text-white/60">{{ workspace.title }}</span>
+            <div class="relative flex items-center justify-between px-4 py-5">
+                <Link href="/admin" class="group flex min-w-0 items-center gap-3" @click="open = false">
+                    <AppLogo class="size-11 rounded-2xl shadow-[0_8px_20px_rgba(0,0,0,0.25)] ring-1 ring-white/10 transition group-hover:scale-[1.03]" />
+                    <span class="min-w-0">
+                        <span class="block truncate text-[1.05rem] font-extrabold leading-none tracking-tight">{{ page.props.platform?.brand?.name_ar || page.props.appName || 'توسيلا' }}</span>
+                        <span class="mt-1 block text-[11px] font-medium text-white/55">{{ workspace.title }}</span>
                     </span>
                 </Link>
-                <button class="grid size-9 place-items-center rounded-xl bg-white/10 lg:hidden" @click="open = false">
-                    <AppIcon name="close" />
+                <button class="grid size-9 place-items-center rounded-xl bg-white/10 transition hover:bg-white/15 lg:hidden" @click="open = false">
+                    <AppIcon name="close" size="sm" />
                 </button>
             </div>
-            <nav class="flex-1 overflow-y-auto px-3 pb-6">
+
+            <nav class="app-sidebar-scroll flex-1 overflow-y-auto px-3 pb-5">
                 <section
                     v-for="(section, index) in sections"
                     :key="section.title"
                     class="space-y-1"
-                    :class="index > 0 ? 'mt-4 border-t border-white/10 pt-3' : ''"
+                    :class="index > 0 ? 'mt-5 border-t border-white/8 pt-4' : ''"
                 >
-                    <p class="px-3 pb-1 text-[11px] font-semibold tracking-wide text-gold/80">
+                    <p class="px-3 pb-1.5 text-[10px] font-bold tracking-[0.14em] text-gold/75 uppercase">
                         {{ section.title }}
                     </p>
                     <Link
                         v-for="link in section.items"
                         :key="link.href"
                         :href="link.href"
-                        class="flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm text-white/75 hover:bg-white/10"
-                        :class="{ 'bg-gold text-navy hover:bg-gold': link.match(page.url) }"
+                        class="app-sidebar-link group"
+                        :class="{ 'is-active': link.match(page.url) }"
                         @click="open = false"
                     >
-                        <AppIcon :name="link.icon" />
-                        {{ link.label }}
+                        <span class="app-sidebar-icon">
+                            <AppIcon :name="link.icon" size="sm" />
+                        </span>
+                        <span class="truncate font-medium">{{ link.label }}</span>
                     </Link>
                 </section>
             </nav>
-            <div class="border-t border-white/10 p-4">
-                <div class="flex items-center gap-3 rounded-2xl bg-white/10 px-3 py-3">
-                    <span class="grid size-10 place-items-center rounded-2xl bg-gold font-bold text-navy">{{ initial(page.props.auth.user?.name) }}</span>
+
+            <div class="border-t border-white/10 p-3">
+                <Link href="/profile" class="flex items-center gap-3 rounded-2xl bg-white/8 px-3 py-3 transition hover:bg-white/12" @click="open = false">
+                    <span class="grid size-10 place-items-center rounded-2xl bg-gradient-to-br from-gold to-gold-hover font-bold text-navy shadow-[0_6px_16px_rgba(214,181,104,0.35)]">{{ initial(page.props.auth.user?.name) }}</span>
                     <div class="min-w-0">
                         <p class="truncate text-sm font-semibold">{{ page.props.auth.user?.name }}</p>
-                        <p class="text-[11px] text-white/60">{{ roleLabel(role) }}</p>
+                        <p class="text-[11px] text-white/55">{{ roleLabel(role) }} · حسابي</p>
                     </div>
-                </div>
+                </Link>
             </div>
         </aside>
+
         <div class="min-w-0">
-            <header class="sticky top-0 z-20 flex items-center justify-between gap-3 border-b border-line bg-white/95 px-4 py-3 backdrop-blur sm:px-6">
-                <div class="flex items-center gap-3">
-                    <button class="grid size-10 place-items-center rounded-2xl border border-line text-navy lg:hidden" @click="open = true">
-                        <AppIcon name="menu" />
+            <header class="sticky top-0 z-20 flex items-center justify-between gap-2.5 border-b border-line/80 bg-white/90 px-3 py-2.5 backdrop-blur-xl sm:gap-3 sm:px-5 sm:py-3 lg:px-6">
+                <div class="flex min-w-0 items-center gap-2.5 sm:gap-3">
+                    <button class="grid size-9 place-items-center rounded-xl border border-line bg-white text-navy transition hover:border-gold/60 hover:bg-canvas sm:size-10 sm:rounded-2xl lg:hidden" @click="open = true">
+                        <AppIcon name="menu" size="sm" />
                     </button>
-                    <div>
-                        <p class="text-[11px] font-semibold tracking-wide text-gold">{{ workspace.eyebrow }}</p>
-                        <h1 class="text-lg font-bold text-navy">{{ currentTitle }}</h1>
+                    <div class="min-w-0">
+                        <p class="dashboard-eyebrow">{{ workspace.eyebrow }}</p>
+                        <h1 class="truncate text-base font-extrabold tracking-tight text-navy sm:text-lg">{{ currentTitle }}</h1>
                     </div>
                 </div>
-                <div class="flex items-center gap-2">
+                <div class="flex shrink-0 items-center gap-1.5 sm:gap-2">
                     <Link
                         v-if="canDispatch"
                         href="/dispatch"
-                        class="hidden rounded-full border border-line px-3 py-1.5 text-sm text-navy hover:border-gold sm:inline-flex"
+                        class="hidden items-center gap-1.5 rounded-full border border-line px-3 py-1.5 text-[13px] font-medium text-navy transition hover:border-gold hover:bg-canvas sm:inline-flex sm:text-sm"
                     >
+                        <AppIcon name="dispatch" size="sm" />
                         غرفة التوزيع
                     </Link>
-                    <span class="hidden rounded-full bg-canvas px-3 py-1.5 text-sm text-navy md:inline">{{ page.props.auth.user?.name }}</span>
-                    <button class="rounded-full px-3 py-1.5 text-sm text-muted hover:text-navy" @click="logout.post('/logout')">خروج</button>
+                    <Link href="/profile" class="hidden max-w-36 truncate rounded-full bg-canvas px-3 py-1.5 text-[13px] font-medium text-navy transition hover:bg-gold/15 md:inline md:text-sm">{{ page.props.auth.user?.name }}</Link>
+                    <button class="inline-flex items-center gap-1 rounded-full px-2.5 py-1.5 text-[13px] font-medium text-muted transition hover:bg-canvas hover:text-navy sm:px-3 sm:text-sm" @click="logout.post('/logout')">
+                        <AppIcon name="logout" size="sm" />
+                        خروج
+                    </button>
                 </div>
             </header>
-            <main class="space-y-5 p-4 sm:p-6">
+            <main class="app-page-enter dashboard-stack p-3 sm:p-5 lg:p-6">
                 <FlashMessage />
                 <slot />
             </main>

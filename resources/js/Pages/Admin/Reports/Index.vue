@@ -28,12 +28,17 @@ const currency = computed(() => page.props.currencyLabel || 'ج.م');
         <SummaryCard label="نسبة الإلغاء" :value="metrics.cancellation_rate ?? '—'" icon="alert" />
         <SummaryCard label="متوسط التسليم بالدقائق" :value="metrics.average_delivery_minutes ?? '—'" icon="clock" />
     </div>
-    <section class="app-card p-5">
-        <h3 class="mb-3 font-bold text-navy">أداء المناديب</h3>
-        <EmptyState v-if="!driverPerformance.length" title="لا يوجد أداء للعرض" />
-        <p v-for="driver in driverPerformance" :key="driver.id" class="flex items-center justify-between border-b border-line py-2 text-sm last:border-0">
-            <span class="font-medium text-navy">{{ driver.name }}</span>
-            <span class="text-muted">{{ driver.delivered }}/{{ driver.assigned }} · {{ driver.success_rate ?? '—' }}%</span>
-        </p>
+    <section class="space-y-3">
+        <h3 class="font-bold text-navy">أداء المناديب</h3>
+        <div v-if="driverPerformance.length" class="app-card-grid">
+            <article v-for="driver in driverPerformance" :key="driver.id" class="app-item-card">
+                <p class="font-bold text-navy">{{ driver.name }}</p>
+                <div class="flex flex-wrap items-center justify-between gap-2 border-t border-line pt-3 text-sm text-muted">
+                    <span>{{ driver.delivered }}/{{ driver.assigned }} طلب</span>
+                    <span class="font-semibold text-navy">{{ driver.success_rate ?? '—' }}%</span>
+                </div>
+            </article>
+        </div>
+        <EmptyState v-else title="لا يوجد أداء للعرض" />
     </section>
 </template>
