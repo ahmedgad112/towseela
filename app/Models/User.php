@@ -110,4 +110,13 @@ class User extends Authenticatable
 
         return route('customer.home');
     }
+
+    public function profilePath(): string
+    {
+        if ($this->hasRole('customer') && ! $this->isStaff() && ! $this->hasRole('driver')) {
+            return route('customer.profile');
+        }
+
+        return route('profile.edit');
+    }
 }

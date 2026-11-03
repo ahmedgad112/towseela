@@ -26,13 +26,14 @@ Route::middleware('guest')->group(function () {
     Route::post('/login', [LoginController::class, 'store'])->middleware('throttle:login');
     Route::get('/register', [RegisterController::class, 'create'])->name('register');
     Route::post('/register', [RegisterController::class, 'store'])->middleware('throttle:register');
-    Route::get('/auth/google/redirect', [GoogleAuthController::class, 'redirect'])
-        ->middleware('throttle:20,1')
-        ->name('auth.google.redirect');
-    Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])
-        ->middleware('throttle:20,1')
-        ->name('auth.google.callback');
 });
+
+Route::get('/auth/google/redirect', [GoogleAuthController::class, 'redirect'])
+    ->middleware('throttle:20,1')
+    ->name('auth.google.redirect');
+Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])
+    ->middleware('throttle:20,1')
+    ->name('auth.google.callback');
 
 Route::post('/logout', [LogoutController::class, 'store'])->middleware('auth')->name('logout');
 
@@ -42,6 +43,9 @@ Route::middleware('auth')->group(function () {
     Route::put('/profile/password', [ProfileController::class, 'updatePassword'])
         ->middleware('throttle:password-update')
         ->name('profile.password.update');
+    Route::delete('/auth/google', [GoogleAuthController::class, 'unlink'])
+        ->middleware('throttle:20,1')
+        ->name('auth.google.unlink');
 
     Route::get('/realtime/orders/pulse', OrderPulseController::class)
         ->middleware('throttle:120,1')

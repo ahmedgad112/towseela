@@ -18,7 +18,11 @@ class ProfileController extends Controller
         $user = $request->user();
 
         return Inertia::render($this->profilePage($user), [
-            'user' => $user->only(['id', 'name', 'email', 'phone']),
+            'user' => [
+                ...$user->only(['id', 'name', 'email', 'phone']),
+                'google_linked' => filled($user->google_id),
+                'has_password' => filled($user->password),
+            ],
         ]);
     }
 
@@ -39,12 +43,17 @@ class ProfileController extends Controller
 
     public function updatePassword(Request $request): RedirectResponse
     {
+        $user = $request->user();
+        $requiresCurrentPassword = filled($user->password);
+
         $data = $request->validate([
-            'current_password' => ['required', 'current_password'],
+            'current_password' => $requiresCurrentPassword
+                ? ['required', 'current_password']
+                : ['nullable'],
             'password' => ['required', 'confirmed', Password::defaults()],
         ]);
 
-        $request->user()->update([
+        $user->update([
             'password' => $data['password'],
         ]);
 

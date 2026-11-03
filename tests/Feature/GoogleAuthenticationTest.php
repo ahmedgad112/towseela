@@ -172,4 +172,128 @@ class GoogleAuthenticationTest extends TestCase
 
         $this->assertAuthenticatedAs($driver);
     }
+
+    public function test_admin_can_login_with_google_using_matching_email(): void
+    {
+        $admin = $this->userWithRole('admin');
+        $admin->forceFill(['google_id' => null])->save();
+
+        Socialite::fake('google', SocialiteUser::fake([
+            'id' => 'google-admin-1',
+            'name' => $admin->name,
+            'email' => $admin->email,
+        ]));
+
+        $this->get(route('auth.google.callback'))
+            ->assertRedirect(route('admin.dashboard'));
+
+        $this->assertAuthenticatedAs($admin);
+        $this->assertSame('google-admin-1', $admin->fresh()->google_id);
+    }
+
+    public function test_authenticated_user_can_link_google_from_profile(): void
+    {
+        $customer = $this->userWithRole('customer');
+        $customer->forceFill(['google_id' => null])->save();
+
+        Socialite::fake('google', SocialiteUser::fake([
+            'id' => 'google-link-customer-1',
+            'name' => $customer->name,
+            'email' => $customer->email,
+        ]));
+
+        $this->actingAs($customer)
+            ->withSession(['google_auth_intent' => 'link'])
+            ->get(route('auth.google.callback'))
+            ->assertRedirect(route('customer.profile'))
+            ->assertSessionHas('success');
+
+        $this->assertSame('google-link-customer-1', $customer->fresh()->google_id);
+    }
+
+    public function test_authenticated_admin_can_link_google_from_profile(): void
+    {
+        $admin = $this->userWithRole('admin');
+        $admin->forceFill(['google_id' => null])->save();
+
+        Socialite::fake('google', SocialiteUser::fake([
+            'id' => 'google-link-admin-1',
+            'name' => $admin->name,
+            'email' => $admin->email,
+        ]));
+
+        $this->actingAs($admin)
+            ->withSession(['google_auth_intent' => 'link'])
+            ->get(route('auth.google.callback'))
+            ->assertRedirect(route('profile.edit'))
+            ->assertSessionHas('success');
+
+        $this->assertSame('google-link-admin-1', $admin->fresh()->google_id);
+    }
+
+    public function test_google_link_rejects_mismatched_email(): void
+    {
+        $user = $this->userWithRole('customer');
+        $user->forceFill(['google_id' => null])->save();
+
+        Socialite::fake('google', SocialiteUser::fake([
+            'id' => 'google-mismatch-1',
+            'name' => $user->name,
+            'email' => 'other-google@towseela.test',
+        ]));
+
+        $this->actingAs($user)
+            ->withSession(['google_auth_intent' => 'link'])
+            ->get(route('auth.google.callback'))
+            ->assertRedirect(route('customer.profile'))
+            ->assertSessionHas('error');
+
+        $this->assertNull($user->fresh()->google_id);
+    }
+
+    public function test_user_can_unlink_google_when_password_exists(): void
+    {
+        $user = $this->userWithRole('admin');
+        $user->forceFill(['google_id' => 'google-unlink-1'])->save();
+
+        $this->actingAs($user)
+            ->from(route('profile.edit'))
+            ->delete(route('auth.google.unlink'))
+            ->assertRedirect(route('profile.edit'))
+            ->assertSessionHas('success');
+
+        $this->assertNull($user->fresh()->google_id);
+    }
+
+    public function test_google_only_user_cannot_unlink_without_password(): void
+    {
+        $this->seedRoles();
+
+        $user = User::factory()->create([
+            'email' => 'google-only@towseela.test',
+            'password' => null,
+            'google_id' => 'google-only-1',
+        ]);
+        $user->assignRole('customer');
+
+        $this->actingAs($user)
+            ->from(route('customer.profile'))
+            ->delete(route('auth.google.unlink'))
+            ->assertRedirect(route('customer.profile'))
+            ->assertSessionHas('error');
+
+        $this->assertSame('google-only-1', $user->fresh()->google_id);
+    }
+
+    public function test_authenticated_redirect_sets_link_intent(): void
+    {
+        Socialite::fake('google');
+
+        $user = $this->userWithRole('customer');
+
+        $this->actingAs($user)
+            ->get(route('auth.google.redirect'))
+            ->assertRedirect()
+            ->assertSessionHas('google_auth_intent', 'link');
+    }
 }

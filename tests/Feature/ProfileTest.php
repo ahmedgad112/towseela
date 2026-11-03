@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Inertia\Testing\AssertableInertia as Assert;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -24,7 +25,9 @@ class ProfileTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Customer/Profile')
                 ->where('user.id', $customer->id)
-                ->where('user.email', $customer->email));
+                ->where('user.email', $customer->email)
+                ->where('user.google_linked', false)
+                ->where('user.has_password', true));
 
         $this->actingAs($customer)
             ->get(route('profile.edit'))
@@ -32,6 +35,42 @@ class ProfileTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Customer/Profile')
                 ->where('user.id', $customer->id));
+    }
+
+    public function test_admin_profile_exposes_google_link_state(): void
+    {
+        $admin = $this->userWithRole('admin');
+        $admin->forceFill(['google_id' => 'google-profile-admin'])->save();
+
+        $this->actingAs($admin)
+            ->get(route('profile.edit'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Admin/Profile')
+                ->where('user.google_linked', true)
+                ->where('user.has_password', true));
+    }
+
+    public function test_google_only_user_can_set_an_initial_password(): void
+    {
+        $this->seedRoles();
+
+        $user = User::factory()->create([
+            'password' => null,
+            'google_id' => 'google-set-password-1',
+        ]);
+        $user->assignRole('customer');
+
+        $this->actingAs($user)
+            ->from(route('customer.profile'))
+            ->put(route('customer.profile.password'), [
+                'password' => 'NewPassword1!',
+                'password_confirmation' => 'NewPassword1!',
+            ])
+            ->assertRedirect(route('customer.profile'))
+            ->assertSessionHas('success');
+
+        $this->assertTrue(Hash::check('NewPassword1!', $user->fresh()->password));
     }
 
     #[DataProvider('workspaceProfiles')]
