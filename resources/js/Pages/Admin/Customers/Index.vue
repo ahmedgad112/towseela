@@ -64,9 +64,17 @@ const saveCreate = () => {
             :href="`/admin/customers/${customer.id}`"
             class="app-item-card"
         >
-            <div>
-                <p class="font-bold text-navy">{{ customer.name }}</p>
-                <p class="mt-1 text-sm text-muted">{{ customer.phone }}</p>
+            <div class="flex items-start justify-between gap-3">
+                <div>
+                    <p class="font-bold text-navy">{{ customer.name }}</p>
+                    <p class="mt-1 text-sm text-muted">{{ customer.phone }}</p>
+                </div>
+                <span
+                    v-if="customer.block_status !== 'active'"
+                    class="rounded-full bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700"
+                >
+                    {{ customer.block_status === 'temporary' ? 'محظور مؤقت' : 'محظور' }}
+                </span>
             </div>
             <p class="border-t border-line pt-3 text-sm text-muted">{{ customer.orders_count }} طلب</p>
         </Link>

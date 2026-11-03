@@ -14,7 +14,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 
-#[Fillable(['name', 'email', 'google_id', 'phone', 'password', 'is_active', 'email_verified_at'])]
+#[Fillable(['name', 'email', 'google_id', 'phone', 'password', 'is_active', 'blocked_until', 'block_reason', 'email_verified_at'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -30,6 +30,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_active' => 'boolean',
+            'blocked_until' => 'datetime',
         ];
     }
 
@@ -41,6 +42,33 @@ class User extends Authenticatable
     protected function active(Builder $query): Builder
     {
         return $query->where('is_active', true);
+    }
+
+    public function isPermanentlyBlocked(): bool
+    {
+        return ! $this->is_active && $this->blocked_until === null;
+    }
+
+    public function isTemporarilyBlocked(): bool
+    {
+        return ! $this->is_active
+            && $this->blocked_until !== null
+            && $this->blocked_until->isFuture();
+    }
+
+    public function clearExpiredBlock(): bool
+    {
+        if ($this->is_active || $this->blocked_until === null || $this->blocked_until->isFuture()) {
+            return false;
+        }
+
+        $this->forceFill([
+            'is_active' => true,
+            'blocked_until' => null,
+            'block_reason' => null,
+        ])->save();
+
+        return true;
     }
 
     public function addresses(): HasMany

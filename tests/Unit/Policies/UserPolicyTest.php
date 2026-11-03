@@ -79,6 +79,8 @@ class UserPolicyTest extends TestCase
         $this->assertFalse($policy->delete($agent, $dispatcher));
         $this->assertTrue($agent->can('customers.view'));
         $this->assertTrue($agent->can('customers.create'));
+        $this->assertFalse($agent->can('customers.update'));
+        $this->assertFalse($agent->can('customers.delete'));
         $this->assertTrue($agent->can('orders.create'));
     }
 }

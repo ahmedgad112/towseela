@@ -29,6 +29,10 @@ class LoginController extends Controller
         $field = filter_var($credentials['login'], FILTER_VALIDATE_EMAIL) ? 'email' : 'phone';
         $user = User::query()->where($field, $credentials['login'])->first();
 
+        if ($user) {
+            $user->clearExpiredBlock();
+        }
+
         if (! $user || ! $user->is_active || ! Auth::attempt([$field => $credentials['login'], 'password' => $credentials['password']], $request->boolean('remember'))) {
             throw ValidationException::withMessages([
                 'login' => __('بيانات الدخول غير صحيحة أو الحساب غير نشط.'),

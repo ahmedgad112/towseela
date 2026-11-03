@@ -126,6 +126,8 @@ class GoogleAuthController extends Controller
             }
         }
 
+        $user->clearExpiredBlock();
+
         if (! $user->is_active) {
             return redirect()
                 ->route('login')

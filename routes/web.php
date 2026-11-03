@@ -100,6 +100,9 @@ Route::middleware(['auth', 'role:super_admin|admin|business_manager'])->prefix('
     Route::get('/customers', [Admin\CustomerController::class, 'index'])->name('customers.index');
     Route::post('/customers', [Admin\CustomerController::class, 'store'])->name('customers.store');
     Route::get('/customers/{user}', [Admin\CustomerController::class, 'show'])->name('customers.show');
+    Route::post('/customers/{user}/block', [Admin\CustomerController::class, 'block'])->name('customers.block');
+    Route::post('/customers/{user}/unblock', [Admin\CustomerController::class, 'unblock'])->name('customers.unblock');
+    Route::delete('/customers/{user}', [Admin\CustomerController::class, 'destroy'])->name('customers.destroy');
     Route::get('/businesses', [Admin\BusinessController::class, 'index'])->name('businesses.index');
     Route::get('/businesses/create', [Admin\BusinessController::class, 'create'])->name('businesses.create');
     Route::post('/businesses', [Admin\BusinessController::class, 'store'])->name('businesses.store');
