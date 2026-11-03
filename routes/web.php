@@ -94,6 +94,7 @@ Route::middleware(['auth', 'role:super_admin|admin|business_manager'])->prefix('
     Route::delete('/orders/{order}', [Admin\OrderController::class, 'destroy'])->name('orders.destroy');
     Route::post('/orders/{order}/assign', [Admin\OrderController::class, 'assign'])->name('orders.assign');
     Route::get('/customers', [Admin\CustomerController::class, 'index'])->name('customers.index');
+    Route::post('/customers', [Admin\CustomerController::class, 'store'])->name('customers.store');
     Route::get('/customers/{user}', [Admin\CustomerController::class, 'show'])->name('customers.show');
     Route::get('/businesses', [Admin\BusinessController::class, 'index'])->name('businesses.index');
     Route::get('/businesses/create', [Admin\BusinessController::class, 'create'])->name('businesses.create');
@@ -148,6 +149,12 @@ Route::middleware(['auth', 'role:super_admin|admin|business_manager'])->prefix('
 
 Route::middleware(['auth', 'role:super_admin|admin|call_center_agent|dispatcher'])->prefix('dispatch')->name('call-center.')->group(function () {
     Route::get('/', CallCenter\DashboardController::class)->name('dashboard');
+    Route::get('/customers/search', [CallCenter\CustomerController::class, 'search'])->name('customers.search');
+    Route::post('/customers', [CallCenter\CustomerController::class, 'store'])->name('customers.store');
+    Route::post('/customers/{user}/addresses', [CallCenter\CustomerController::class, 'storeAddress'])->name('customers.addresses.store');
+    Route::get('/orders/create', [CallCenter\OrderController::class, 'create'])->name('orders.create');
+    Route::post('/orders', [CallCenter\OrderController::class, 'store'])->name('orders.store');
+    Route::get('/businesses/{business}/products', [CallCenter\OrderController::class, 'products'])->name('businesses.products');
     Route::get('/orders/{order}', [CallCenter\OrderController::class, 'show'])->name('orders.show');
     Route::post('/orders/{order}/confirm', [CallCenter\OrderController::class, 'confirm'])->name('orders.confirm');
     Route::post('/orders/{order}/reject', [CallCenter\OrderController::class, 'reject'])->name('orders.reject');

@@ -26,7 +26,7 @@ const sections = computed(() => [
         title: 'العمليات',
         items: [
             { href: '/admin/orders', label: 'الطلبات', icon: 'orders', show: can('orders.view'), match: (url) => url.startsWith('/admin/orders') },
-            { href: '/admin/customers', label: 'العملاء', icon: 'user', show: can('users.view') && role.value !== 'business_manager', match: (url) => url.startsWith('/admin/customers') },
+            { href: '/admin/customers', label: 'العملاء', icon: 'user', show: can('customers.view') && role.value !== 'business_manager', match: (url) => url.startsWith('/admin/customers') },
         ],
     },
     {

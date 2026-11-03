@@ -13,6 +13,7 @@ const workspace = computed(() => workspaceFor(roles.value));
 const role = computed(() => primaryRole(roles.value));
 const canAdmin = computed(() => roles.value.some((item) => ['super_admin', 'admin', 'business_manager'].includes(item)));
 const canAssign = computed(() => page.props.auth.permissions.includes('orders.assign_driver'));
+const canCreateOrder = computed(() => roles.value.includes('super_admin') || page.props.auth.permissions.includes('orders.create'));
 </script>
 
 <template>
@@ -45,6 +46,15 @@ const canAssign = computed(() => page.props.auth.permissions.includes('orders.as
                     >
                         <AppIcon :name="canAssign ? 'dispatch' : 'headset'" />
                         {{ canAssign ? 'طابور التوزيع' : 'الطلبات الواردة' }}
+                    </Link>
+                    <Link
+                        v-if="canCreateOrder"
+                        href="/dispatch/orders/create"
+                        class="inline-flex min-h-10 items-center gap-2 rounded-2xl px-3 text-sm"
+                        :class="page.url.startsWith('/dispatch/orders/create') ? 'bg-gold text-navy' : 'text-white/75 hover:bg-white/10'"
+                    >
+                        <AppIcon name="plus" />
+                        طلب جديد
                     </Link>
                 </div>
             </div>

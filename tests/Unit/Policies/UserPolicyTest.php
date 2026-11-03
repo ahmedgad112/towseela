@@ -66,16 +66,19 @@ class UserPolicyTest extends TestCase
         ];
     }
 
-    public function test_call_center_agent_can_view_users_but_not_manage_them(): void
+    public function test_call_center_agent_cannot_manage_staff_accounts(): void
     {
         $policy = new UserPolicy;
         $agent = $this->userWithRole('call_center_agent');
         $dispatcher = $this->userWithRole('dispatcher');
 
-        $this->assertTrue($policy->viewAny($agent));
-        $this->assertTrue($policy->view($agent, $dispatcher));
+        $this->assertFalse($policy->viewAny($agent));
+        $this->assertFalse($policy->view($agent, $dispatcher));
         $this->assertFalse($policy->create($agent));
         $this->assertFalse($policy->update($agent, $dispatcher));
         $this->assertFalse($policy->delete($agent, $dispatcher));
+        $this->assertTrue($agent->can('customers.view'));
+        $this->assertTrue($agent->can('customers.create'));
+        $this->assertTrue($agent->can('orders.create'));
     }
 }

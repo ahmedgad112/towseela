@@ -2,20 +2,150 @@
 
 namespace App\Http\Controllers\CallCenter;
 
+use App\Enums\AddressLabel;
 use App\Enums\OrderStatus;
 use App\Http\Controllers\Controller;
+use App\Models\Business;
+use App\Models\BusinessCategory;
+use App\Models\CustomerAddress;
+use App\Models\DeliveryZone;
 use App\Models\Order;
 use App\Models\User;
+use App\Services\CheckoutService;
 use App\Services\OrderWorkflowService;
 use App\Support\OrderTransitions;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class OrderController extends Controller
 {
+    public function create(Request $request): Response
+    {
+        $this->authorize('create', Order::class);
+
+        $businesses = Business::query()
+            ->with('category:id,name_ar,icon')
+            ->where('is_active', true)
+            ->where('accepts_orders', true)
+            ->orderBy('name_ar')
+            ->get([
+                'id',
+                'business_category_id',
+                'name_ar',
+                'description',
+                'cover_path',
+                'min_order_amount',
+                'delivery_time_min',
+                'delivery_time_max',
+            ]);
+
+        return Inertia::render('CallCenter/Orders/Create', [
+            'categories' => BusinessCategory::query()
+                ->active()
+                ->withCount([
+                    'businesses as accepting_orders_count' => fn ($query) => $query
+                        ->where('is_active', true)
+                        ->where('accepts_orders', true),
+                ])
+                ->orderBy('sort_order')
+                ->orderBy('id')
+                ->get(['id', 'name_ar', 'icon'])
+                ->filter(fn (BusinessCategory $category) => $category->accepting_orders_count > 0)
+                ->values()
+                ->map(fn (BusinessCategory $category) => [
+                    'id' => $category->id,
+                    'name_ar' => $category->name_ar,
+                    'icon' => $category->icon,
+                    'businesses_count' => $category->accepting_orders_count,
+                ]),
+            'businesses' => $businesses->map(fn (Business $business) => [
+                'id' => $business->id,
+                'business_category_id' => $business->business_category_id,
+                'name_ar' => $business->name_ar,
+                'description' => $business->description,
+                'cover_url' => $business->cover_url,
+                'min_order_amount' => $business->min_order_amount,
+                'delivery_time_min' => $business->delivery_time_min,
+                'delivery_time_max' => $business->delivery_time_max,
+                'category' => $business->category
+                    ? $business->category->only(['id', 'name_ar', 'icon'])
+                    : null,
+            ]),
+            'zones' => DeliveryZone::query()
+                ->active()
+                ->orderBy('governorate')
+                ->orderBy('name_ar')
+                ->get(['id', 'name_ar', 'governorate']),
+            'governorates' => collect(config('towseela.governorates'))->pluck('name')->values(),
+            'labels' => collect(AddressLabel::cases())->map(fn (AddressLabel $label) => [
+                'value' => $label->value,
+                'label' => $label->label(),
+            ]),
+            'checkoutToken' => (string) Str::uuid(),
+            'can' => [
+                'createCustomer' => $request->user()->can('customers.create'),
+            ],
+        ]);
+    }
+
+    public function products(Request $request, Business $business): JsonResponse
+    {
+        $this->authorize('create', Order::class);
+        abort_unless($business->is_active && $business->accepts_orders, 404);
+
+        $products = $business->products()
+            ->available()
+            ->orderBy('sort_order')
+            ->orderBy('name_ar')
+            ->get(['id', 'business_id', 'name_ar', 'price', 'is_available', 'is_active']);
+
+        return response()->json([
+            'products' => $products,
+        ]);
+    }
+
+    public function store(Request $request, CheckoutService $checkout): RedirectResponse
+    {
+        $this->authorize('create', Order::class);
+
+        $data = $request->validate([
+            'customer_id' => ['required', 'exists:users,id'],
+            'address_id' => ['required', 'exists:customer_addresses,id'],
+            'checkout_token' => ['required', 'string', 'max:64'],
+            'notes' => ['nullable', 'string', 'max:255'],
+            'items' => ['required', 'array', 'min:1'],
+            'items.*.product_id' => ['required', 'exists:products,id'],
+            'items.*.quantity' => ['required', 'integer', 'min:1', 'max:99'],
+            'items.*.options' => ['sometimes', 'array'],
+            'items.*.options.*' => ['integer', 'exists:product_option_values,id'],
+            'items.*.notes' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $customer = User::query()->findOrFail($data['customer_id']);
+        abort_unless($customer->hasRole('customer'), 422);
+
+        $address = CustomerAddress::query()->findOrFail($data['address_id']);
+        abort_unless($address->user_id === $customer->id, 422);
+
+        $order = $checkout->placeAssisted(
+            $customer,
+            $address,
+            $data['items'],
+            $request->user(),
+            $data['checkout_token'],
+            $data['notes'] ?? null,
+        );
+
+        return redirect()
+            ->route('call-center.orders.show', $order)
+            ->with('success', __('تم إنشاء الطلب من مركز الاتصال.'));
+    }
+
     public function show(Request $request, Order $order): Response
     {
         $this->authorize('view', $order);

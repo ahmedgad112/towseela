@@ -24,6 +24,7 @@ const role = computed(() => primaryRole(page.props.auth.roles));
 const workspace = computed(() => workspaceFor(page.props.auth.roles));
 const canAssign = computed(() => page.props.auth.roles.includes('super_admin') || page.props.auth.permissions.includes('orders.assign_driver'));
 const canConfirm = computed(() => page.props.auth.roles.includes('super_admin') || page.props.auth.permissions.includes('orders.confirm'));
+const canCreateOrder = computed(() => page.props.auth.roles.includes('super_admin') || page.props.auth.permissions.includes('orders.create'));
 const currency = computed(() => page.props.currencyLabel || 'ج.م');
 const assignForms = Object.fromEntries((props.orders.data || []).map((order) => [order.id, useForm({ driver_id: '' })]));
 const { live } = useOrderLive({
@@ -60,6 +61,9 @@ const filter = (status = props.filters.status || '') => router.get('/dispatch', 
         <p class="dashboard-subtitle">
             {{ role === 'dispatcher' ? 'وزّع الطلبات على المناديب المتاحين وتابع التحميل الحالي.' : 'أكد الطلبات الواردة وتواصل مع العميل عند الحاجة.' }}
         </p>
+        <div v-if="canCreateOrder" class="mt-4">
+            <UiButton href="/dispatch/orders/create">طلب جديد من الاتصال</UiButton>
+        </div>
     </section>
 
     <div class="grid gap-3 sm:gap-3.5 md:grid-cols-2">

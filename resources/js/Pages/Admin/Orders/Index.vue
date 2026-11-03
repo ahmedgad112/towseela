@@ -6,6 +6,7 @@ import StatusBadge from '../../../Components/StatusBadge.vue';
 import EmptyState from '../../../Components/EmptyState.vue';
 import Pagination from '../../../Components/Pagination.vue';
 import PageHeader from '../../../Components/PageHeader.vue';
+import UiButton from '../../../Components/UiButton.vue';
 import { useOrderLive } from '../../../orderLive';
 import { money } from '../../../workspace';
 
@@ -19,6 +20,7 @@ const q = ref(props.filters.q || '');
 const status = ref(props.filters.status || '');
 const page = usePage();
 const currency = computed(() => page.props.currencyLabel || 'ج.م');
+const canCreateOrder = computed(() => page.props.auth.roles.includes('super_admin') || page.props.auth.permissions.includes('orders.create'));
 const { live } = useOrderLive({
     channel: 'ops',
     only: ['orders'],
@@ -29,6 +31,7 @@ const search = () => router.get('/admin/orders', { q: q.value, status: status.va
 
 <template>
     <PageHeader title="الطلبات" text="ابحث برقم الطلب أو هاتف العميل، أو صفّ حسب الحالة.">
+        <UiButton v-if="canCreateOrder" href="/dispatch/orders/create">طلب جديد</UiButton>
         <span
             class="rounded-full px-3 py-1 text-[11px] font-bold"
             :class="live ? 'bg-gold/20 text-navy' : 'bg-canvas text-muted'"
